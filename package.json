@@ -7,8 +7,11 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "biome format .",
-		"lint:fix": "biome format --write ."
+		"lint:fix": "biome format --write .",
+		"type-check": "tsc --noEmit",
+		"check-all": "bun type-check && bun lint"
 	},
+	"packageManager": "bun@1.3.13",
 	"dependencies": {
 		"@tailwindcss/typography": "0.5.19",
 		"clsx": "2.1.1",
@@ -23,15 +26,12 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.13",
-		"@eslint/eslintrc": "3.3.5",
 		"@tailwindcss/postcss": "4.2.4",
 		"@types/node": "20.19.39",
 		"@types/react": "19.2.14",
 		"@types/react-dom": "19.2.3",
 		"@types/react-syntax-highlighter": "15.5.13",
 		"babel-plugin-react-compiler": "1.0.0",
-		"eslint": "9.39.4",
-		"eslint-config-next": "16.2.4",
 		"tailwindcss": "4.2.4",
 		"typescript": "5.9.3"
 	},
