@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, BookOpen, Clock } from "lucide-react";
+import { BookOpen, Clock, ExternalLink } from "lucide-react";
 import { ChatSource } from "./ChatMessage";
 
 interface ContextPanelProps {
@@ -44,7 +44,7 @@ export function ContextPanel({ sources }: ContextPanelProps) {
 								className="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-purple-500 transition-colors group"
 							>
 								<div className="flex items-start gap-3">
-									<div className="flex-shrink-0 w-6 h-6 bg-purple-600 rounded text-white text-xs font-mono flex items-center justify-center">
+									<div className="shrink-0 w-6 h-6 bg-purple-600 rounded text-white text-xs font-mono flex items-center justify-center">
 										{index + 1}
 									</div>
 

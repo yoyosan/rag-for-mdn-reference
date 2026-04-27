@@ -2,7 +2,7 @@
 
 import { clsx } from "clsx";
 import { ExternalLink } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatSource } from "@/components/chat/ChatMessage.types";
 
 interface CitationTooltipProps {
@@ -19,7 +19,7 @@ export function CitationTooltip({
 	const triggerRef = useRef<HTMLSpanElement>(null);
 	const tooltipRef = useRef<HTMLDivElement>(null);
 
-	const updatePosition = () => {
+	const updatePosition = useCallback(() => {
 		if (triggerRef.current && tooltipRef.current) {
 			const triggerRect = triggerRef.current.getBoundingClientRect();
 			const tooltipRect = tooltipRef.current.getBoundingClientRect();
@@ -44,7 +44,7 @@ export function CitationTooltip({
 
 			setPosition({ top, left });
 		}
-	};
+	}, []);
 
 	useEffect(() => {
 		if (isVisible) {
@@ -57,7 +57,7 @@ export function CitationTooltip({
 				window.removeEventListener("resize", updatePosition);
 			};
 		}
-	}, [isVisible]);
+	}, [isVisible, updatePosition]);
 
 	const handleClick = (e: React.MouseEvent) => {
 		e.preventDefault();
@@ -129,7 +129,7 @@ export function CitationTooltip({
 								<h4 className="font-semibold text-white text-sm leading-tight">
 									{source.title}
 								</h4>
-								<span className="text-xs bg-purple-600 text-white px-1.5 py-0.5 rounded font-mono flex-shrink-0">
+								<span className="text-xs bg-purple-600 text-white px-1.5 py-0.5 rounded font-mono shrink-0">
 									{citationNumber}
 								</span>
 							</div>

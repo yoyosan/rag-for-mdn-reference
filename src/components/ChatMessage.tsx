@@ -1,10 +1,10 @@
 "use client";
 
-import { getMarkdownComponents } from "@/components/chat/markdown/MarkdownComponents";
 import { clsx } from "clsx";
 import { Bot, ExternalLink, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { getMarkdownComponents } from "@/components/chat/markdown/MarkdownComponents";
 
 export interface ChatSource {
 	id: string;

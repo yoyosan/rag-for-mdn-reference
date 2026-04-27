@@ -38,17 +38,16 @@ export function Chat() {
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLTextAreaElement>(null);
 
-	const scrollToBottom = () => {
-		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	};
-
 	useEffect(() => {
-		scrollToBottom();
-	}, [messages]);
+		if (messages.length > 0) {
+			messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+		}
+	}, [messages.length]);
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		if (!input.trim() || isLoading) return;
+	const submitMessage = async () => {
+		if (!input.trim() || isLoading) {
+			return;
+		}
 
 		const userMessage: Message = {
 			id: Date.now().toString(),
@@ -68,25 +67,25 @@ export function Chat() {
 				type: "ai",
 				content: `# Understanding ${input.trim()}
 
-Here's what you need to know about **${input.trim()}**:
+  Here's what you need to know about **${input.trim()}**:
 
-## Overview
-This is a comprehensive explanation that demonstrates \`inline code\` and other formatting features.
+  ## Overview
+  This is a comprehensive explanation that demonstrates \`inline code\` and other formatting features.
 
-\`\`\`javascript
-// Example code block
-function example() {
-  console.log("Hello from MDN documentation!");
-  return true;
-}
-\`\`\`
+  \`\`\`javascript
+  // Example code block
+  function example() {
+    console.log("Hello from MDN documentation!");
+    return true;
+  }
+  \`\`\`
 
-## Key Points
-1. First important point with [citation](1)
-2. Second point that references [MDN docs](2)
-3. Third point about best practices
+  ## Key Points
+  1. First important point with [citation](1)
+  2. Second point that references [MDN docs](2)
+  3. Third point about best practices
 
-The information above is sourced from official MDN documentation [3].`,
+  The information above is sourced from official MDN documentation [3].`,
 				timestamp: new Date(),
 				isStreaming: true,
 				sources: [
@@ -127,10 +126,15 @@ The information above is sourced from official MDN documentation [3].`,
 		}, 1000);
 	};
 
-	const handleKeyDown = (e: React.KeyboardEvent) => {
+	const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		await submitMessage();
+	};
+
+	const handleKeyDown = async (e: React.KeyboardEvent) => {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
-			handleSubmit(e as React.FormEvent);
+			await submitMessage();
 		}
 	};
 
@@ -275,7 +279,7 @@ The information above is sourced from official MDN documentation [3].`,
 								onChange={(e) => setInput(e.target.value)}
 								onKeyDown={handleKeyDown}
 								placeholder="Ask me about web development, JavaScript, CSS, HTML..."
-								className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 pr-12 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none min-h-[50px] max-h-32"
+								className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 pr-12 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none min-h-12.5 max-h-32"
 								rows={1}
 								disabled={isLoading}
 							/>
@@ -296,7 +300,6 @@ The information above is sourced from official MDN documentation [3].`,
 				</div>
 			</div>
 
-			{/* Context Panel */}
 			{isContextPanelOpen && (
 				<ContextPanel
 					sources={messages
@@ -305,7 +308,6 @@ The information above is sourced from official MDN documentation [3].`,
 				/>
 			)}
 
-			{/* Export Dialog */}
 			{isExportDialogOpen && (
 				<ExportDialog
 					messages={messages}
