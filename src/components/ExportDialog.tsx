@@ -3,7 +3,7 @@
 import { clsx } from "clsx";
 import { Check, Copy, Download, FileText, Hash, X } from "lucide-react";
 import { useState } from "react";
-import { Message } from "./ChatMessage";
+import { Message } from "@/components/chat/Message.types";
 
 interface ExportDialogProps {
 	messages: Message[];

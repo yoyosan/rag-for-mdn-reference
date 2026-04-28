@@ -4,7 +4,7 @@ import { ExternalLink } from "lucide-react";
 import type { ComponentPropsWithoutRef } from "react";
 import React from "react";
 import type { Components, ExtraProps } from "react-markdown";
-import type { Message } from "@/components/chat/ChatMessage.types";
+import type { Message } from "@/components/chat/Message.types";
 import { CodeBlock } from "@/components/chat/markdown/CodeBlock";
 import { processCitations } from "@/components/chat/markdown/processCitations";
 import { StreamingText } from "@/components/chat/markdown/StreamingText";

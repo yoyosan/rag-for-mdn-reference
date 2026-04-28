@@ -3,7 +3,7 @@
 import { clsx } from "clsx";
 import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChatSource } from "@/components/chat/ChatMessage.types";
+import { ChatSource } from "@/components/chat/Message.types";
 
 interface CitationTooltipProps {
 	source: ChatSource;

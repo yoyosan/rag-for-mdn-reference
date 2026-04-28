@@ -1,33 +1,19 @@
 "use client";
 
 import { clsx } from "clsx";
-import {
-	Download,
-	PanelLeftClose,
-	PanelLeftOpen,
-	RotateCcw,
-	Send,
-} from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { ChatMessage, Message } from "./ChatMessage";
-import { ContextPanel } from "./ContextPanel";
-import { ExportDialog } from "./ExportDialog";
+import { Send } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ContextPanel } from "@/components/ContextPanel";
+import { ChatHeader } from "@/components/chat/Header";
+import { ChatMessage } from "@/components/chat/Message";
+import { Message } from "@/components/chat/Message.types";
+import { ExportDialog } from "@/components/ExportDialog";
 
-export interface ChatSource {
-	id: string;
-	title: string;
-	snippet: string;
-	url: string;
-}
-
-export interface ChatMessage {
-	id: string;
-	type: "user" | "ai";
-	content: string;
-	timestamp: Date;
-	sources?: ChatSource[];
-	isStreaming?: boolean;
-}
+const initialPrompts = [
+	"What is the difference between let and var in JavaScript?",
+	"How do CSS Grid and Flexbox differ?",
+	"What are Web Components and how do I use them?",
+];
 
 export function Chat() {
 	const [messages, setMessages] = useState<Message[]>([]);
@@ -36,7 +22,10 @@ export function Chat() {
 	const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
-	const inputRef = useRef<HTMLTextAreaElement>(null);
+	const responseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const streamingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+		null,
+	);
 
 	useEffect(() => {
 		if (messages.length > 0) {
@@ -44,15 +33,30 @@ export function Chat() {
 		}
 	}, [messages.length]);
 
+	const clearPendingTimeouts = useCallback(() => {
+		if (responseTimeoutRef.current) {
+			clearTimeout(responseTimeoutRef.current);
+			responseTimeoutRef.current = null;
+		}
+		if (streamingTimeoutRef.current) {
+			clearTimeout(streamingTimeoutRef.current);
+			streamingTimeoutRef.current = null;
+		}
+	}, []);
+
+	useEffect(() => () => clearPendingTimeouts(), [clearPendingTimeouts]);
+
 	const submitMessage = async () => {
-		if (!input.trim() || isLoading) {
+		const prompt = input.trim();
+
+		if (!prompt || isLoading) {
 			return;
 		}
 
 		const userMessage: Message = {
 			id: Date.now().toString(),
 			type: "user",
-			content: input.trim(),
+			content: prompt,
 			timestamp: new Date(),
 		};
 
@@ -61,13 +65,13 @@ export function Chat() {
 		setIsLoading(true);
 
 		// Simulate AI response with streaming
-		setTimeout(() => {
+		responseTimeoutRef.current = setTimeout(() => {
 			const aiMessage: Message = {
 				id: (Date.now() + 1).toString(),
 				type: "ai",
-				content: `# Understanding ${input.trim()}
+				content: `# Understanding ${prompt}
 
-  Here's what you need to know about **${input.trim()}**:
+  Here's what you need to know about **${prompt}**:
 
   ## Overview
   This is a comprehensive explanation that demonstrates \`inline code\` and other formatting features.
@@ -116,7 +120,7 @@ export function Chat() {
 			setIsLoading(false);
 
 			// Simulate streaming completion
-			setTimeout(() => {
+			streamingTimeoutRef.current = setTimeout(() => {
 				setMessages((prev) =>
 					prev.map((msg) =>
 						msg.id === aiMessage.id ? { ...msg, isStreaming: false } : msg,
@@ -139,11 +143,18 @@ export function Chat() {
 	};
 
 	const clearChat = () => {
+		// clear timeouts first before clearing messages
+		clearPendingTimeouts();
 		setMessages([]);
+		setIsLoading(false);
 	};
 
 	const toggleContextPanel = () => {
 		setIsContextPanelOpen((prev) => !prev);
+	};
+
+	const enableExportDialog = () => {
+		setIsExportDialogOpen(true);
 	};
 
 	return (
@@ -156,52 +167,13 @@ export function Chat() {
 				)}
 			>
 				{/* Header */}
-				<header className="border-b border-gray-800 p-4 flex items-center justify-between bg-[#1a1a2e]">
-					<div className="flex items-center gap-3">
-						<h1 className="text-xl font-semibold text-white">
-							MDN Developer Chat
-						</h1>
-						<span className="text-sm text-gray-400">
-							AI-powered documentation assistant
-						</span>
-					</div>
-
-					<div className="flex items-center gap-2">
-						<button
-							onClick={toggleContextPanel}
-							className="p-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
-							aria-label={
-								isContextPanelOpen
-									? "Close context panel"
-									: "Open context panel"
-							}
-						>
-							{isContextPanelOpen ? (
-								<PanelLeftClose className="w-5 h-5" />
-							) : (
-								<PanelLeftOpen className="w-5 h-5" />
-							)}
-						</button>
-
-						<button
-							onClick={() => setIsExportDialogOpen(true)}
-							className="p-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
-							aria-label="Export conversation"
-							disabled={messages.length === 0}
-						>
-							<Download className="w-5 h-5" />
-						</button>
-
-						<button
-							onClick={clearChat}
-							className="p-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
-							aria-label="Clear conversation"
-							disabled={messages.length === 0}
-						>
-							<RotateCcw className="w-5 h-5" />
-						</button>
-					</div>
-				</header>
+				<ChatHeader
+					hasMessages={messages.length > 0}
+					clearChat={clearChat}
+					isContextPanelOpen={isContextPanelOpen}
+					toggleContextPanel={toggleContextPanel}
+					enableExportDialog={enableExportDialog}
+				/>
 
 				{/* Messages Area */}
 				<div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -216,32 +188,15 @@ export function Chat() {
 									or any other topics covered in MDN documentation.
 								</p>
 								<div className="grid grid-cols-1 gap-2 text-sm">
-									<button
-										onClick={() =>
-											setInput(
-												"What is the difference between let and var in JavaScript?",
-											)
-										}
-										className="p-3 text-left rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-gray-200"
-									>
-										What is the difference between let and var in JavaScript?
-									</button>
-									<button
-										onClick={() =>
-											setInput("How do CSS Grid and Flexbox differ?")
-										}
-										className="p-3 text-left rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-gray-200"
-									>
-										How do CSS Grid and Flexbox differ?
-									</button>
-									<button
-										onClick={() =>
-											setInput("What are Web Components and how do I use them?")
-										}
-										className="p-3 text-left rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-gray-200"
-									>
-										What are Web Components and how do I use them?
-									</button>
+									{initialPrompts.map((prompt) => (
+										<button
+											key={prompt}
+											onClick={() => setInput(prompt)}
+											className="p-3 text-left rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-gray-200"
+										>
+											{prompt}
+										</button>
+									))}
 								</div>
 							</div>
 						</div>
@@ -252,7 +207,11 @@ export function Chat() {
 					)}
 
 					{isLoading && (
-						<div className="flex justify-start">
+						<div
+							className="flex justify-start"
+							role="status"
+							aria-live="polite"
+						>
 							<div className="bg-gray-800 rounded-lg p-4 max-w-4xl">
 								<div className="flex items-center gap-2 text-gray-400">
 									<div className="flex gap-1">
@@ -274,7 +233,7 @@ export function Chat() {
 					<form onSubmit={handleSubmit} className="flex gap-3">
 						<div className="flex-1 relative">
 							<textarea
-								ref={inputRef}
+								aria-label="Ask me about web development, JavaScript, CSS, HTML..."
 								value={input}
 								onChange={(e) => setInput(e.target.value)}
 								onKeyDown={handleKeyDown}

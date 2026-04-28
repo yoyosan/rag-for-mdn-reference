@@ -2,7 +2,7 @@ import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { CodeBlockProps } from "../ChatMessage.types";
+import { CodeBlockProps } from "../Message.types";
 
 export function CodeBlock({ children, className, inline }: CodeBlockProps) {
 	const [copied, setCopied] = useState(false);

@@ -4,27 +4,8 @@ import { clsx } from "clsx";
 import { Bot, ExternalLink, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ChatMessageProps } from "@/components/chat/Message.types";
 import { getMarkdownComponents } from "@/components/chat/markdown/MarkdownComponents";
-
-export interface ChatSource {
-	id: string;
-	title: string;
-	snippet: string;
-	url: string;
-}
-
-export interface Message {
-	id: string;
-	type: "user" | "ai";
-	content: string;
-	timestamp: Date;
-	sources?: ChatSource[];
-	isStreaming?: boolean;
-}
-
-interface ChatMessageProps {
-	message: Message;
-}
 
 export function ChatMessage({ message }: ChatMessageProps) {
 	const isUser = message.type === "user";
