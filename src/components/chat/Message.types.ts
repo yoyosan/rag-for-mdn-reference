@@ -13,13 +13,3 @@ export interface Message {
 	sources?: ChatSource[];
 	isStreaming?: boolean;
 }
-
-export interface ChatMessageProps {
-	message: Message;
-}
-
-export interface CodeBlockProps {
-	children: string;
-	className?: string;
-	inline?: boolean;
-}

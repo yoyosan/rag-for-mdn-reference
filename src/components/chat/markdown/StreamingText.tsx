@@ -22,10 +22,10 @@ export function StreamingText({
 			if (index >= content.length) {
 				clearInterval(interval);
 			}
-		});
+		}, 20);
 
 		// Clear the interval on unmount or when streaming stops
-		return () => clearTimeout(interval);
+		return () => clearInterval(interval);
 	}, [content, isStreaming]);
 
 	if (!isStreaming) {
