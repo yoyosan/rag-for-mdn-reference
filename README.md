@@ -36,13 +36,13 @@ psql -d unlearn-rag-course -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
 ### 3. Configure environment variables
 
-Create a `.env` file in the project root:
+Create a `.env.local` file in the project root with your database connection:
 
 ```bash
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/unlearn-rag-course
 ```
 
-Adjust the connection string to match your PostgreSQL credentials.
+The `.env` file should remain empty — drizzle-kit auto-loads it and would override `.env.local` if it contains values.
 
 ### 4. Run database migrations
 
@@ -50,9 +50,17 @@ Adjust the connection string to match your PostgreSQL credentials.
 bun run db:migrate
 ```
 
-This creates the `documents` table with vector embedding support.
+This creates all tables: `documents`, `chunks`, `conversations`, `messages`, and `message_sources`.
 
-### 5. Start the development server
+### 5. Seed the database
+
+```bash
+bun run db:seed
+```
+
+This populates the database with MDN JavaScript documentation chunks (33 documents, ~1,180 chunks).
+
+### 6. Start the development server
 
 ```bash
 bun run dev
@@ -66,15 +74,17 @@ This project uses [Drizzle ORM](https://orm.drizzle.team) with PostgreSQL.
 
 ### Schema
 
-The `documents` table stores content with vector embeddings for similarity search:
+The database uses **branded types** for type-safe IDs. Each table uses UUID primary keys with semantic brand tags to prevent mixing up different ID types at compile time.
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | serial (PK) | Auto-incrementing ID |
-| `content` | text | Document content |
-| `embedding` | vector(1536) | Vector embedding for semantic search |
-| `metadata` | text | Optional JSON metadata |
-| `created_at` | timestamp | Creation timestamp |
+#### Tables
+
+| Table | Purpose |
+|-------|---------|
+| `documents` | Source documents (MDN guides) |
+| `chunks` | Document chunks with vector embeddings for similarity search |
+| `conversations` | Chat conversations |
+| `messages` | Chat messages (user and AI) |
+| `message_sources` | Links between AI messages and source chunks (citations) |
 
 ### Database commands
 
@@ -84,6 +94,9 @@ bun run db:generate
 
 # Apply pending migrations
 bun run db:migrate
+
+# Seed the database with chunk data
+bun run db:seed
 ```
 
 Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
@@ -96,14 +109,26 @@ Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
 │   ├── components/          # React components
 │   │   ├── chat/           # Chat interface
 │   │   └── ...
-│   └── db/
-│       ├── index.ts        # Database connection
-│       └── schema.ts       # Drizzle schema definitions
+│   ├── db/
+│   │   ├── index.ts        # Database connection
+│   │   └── schema/         # Drizzle schema modules
+│   │       ├── documents.ts
+│   │       ├── chunks.ts
+│   │       ├── conversations.ts
+│   │       ├── messages.ts
+│   │       └── messageSources.ts
+│   ├── types/
+│   │   ├── brands.ts       # Branded type definitions
+│   │   └── entities/       # Entity type exports
+│   └── lib/
+│       └── branded.ts      # Branded type helper
 ├── drizzle/                # Migration files
 ├── scripts/
-│   └── chunk-docs.ts       # Document chunking script
+│   ├── chunk-docs.ts       # Document chunking script
+│   └── seed-db.ts          # Database seeding script
+├── chunks.json             # Generated chunk data
 ├── drizzle.config.ts       # Drizzle Kit configuration
-└── .env                    # Environment variables
+└── .env.local              # Environment variables (not committed)
 ```
 
 ## Development
@@ -118,6 +143,9 @@ bun run lint         # Run Biome linter
 bun run lint:fix     # Fix linting issues
 bun run check-all    # Run type-check + lint
 bun run chunk-docs   # Process and chunk documents
+bun run db:generate  # Generate Drizzle migrations
+bun run db:migrate   # Apply database migrations
+bun run db:seed      # Seed database with chunk data
 ```
 
 ## Tech Stack

@@ -1,6 +1,6 @@
 {
-	"id": "571454bb-0cbe-4e44-a69a-9cfca34cdb39",
-	"prevId": "00000000-0000-0000-0000-000000000000",
+	"id": "5f15a779-b115-4fa5-8f64-0849d667a144",
+	"prevId": "571454bb-0cbe-4e44-a69a-9cfca34cdb39",
 	"version": "7",
 	"dialect": "postgresql",
 	"tables": {
@@ -174,7 +174,7 @@
 					"name": "slug",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"source_file_path": {
 					"name": "source_file_path",
