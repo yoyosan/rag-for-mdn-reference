@@ -6,7 +6,6 @@ A Next.js project demonstrating Retrieval-Augmented Generation (RAG) with vector
 
 - [Bun](https://bun.sh) (v1.3.13+)
 - PostgreSQL 17+ with [pgvector](https://github.com/pgvector/pgvector) extension
-- Node.js 20+ (for development tooling)
 
 ## Setup
 

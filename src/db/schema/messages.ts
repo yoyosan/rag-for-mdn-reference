@@ -1,0 +1,18 @@
+import { boolean, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { conversationsTable } from "@/db/schema/conversations";
+import { ConversationId, MessageId, MessageSourceId } from "@/types/brands";
+
+export const messageTypes = ["user", "ai"] as const;
+
+export const messagesTable = pgTable("messages", {
+	id: uuid("id").$type<MessageId>().defaultRandom().primaryKey(),
+	conversationId: uuid("conversation_id")
+		.$type<ConversationId>()
+		.references(() => conversationsTable.id, { onDelete: "cascade" })
+		.notNull(),
+	type: text("type", { enum: messageTypes }).notNull(),
+	content: text("content").notNull(),
+	isStreaming: boolean("is_streaming").default(false).notNull(),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
