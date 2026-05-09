@@ -5,7 +5,7 @@ export interface ChatSource {
 	url: string;
 }
 
-export interface Message {
+export interface ChatMessage {
 	id: string;
 	type: "user" | "ai";
 	content: string;

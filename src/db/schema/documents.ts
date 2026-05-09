@@ -11,5 +11,8 @@ export const documentsTable = pgTable("documents", {
 	totalChunks: integer("total_chunks").notNull().default(0),
 	processedAt: timestamp("processed_at").defaultNow().notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
-	updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at")
+		.defaultNow()
+		.$onUpdate(() => new Date())
+		.notNull(),
 });

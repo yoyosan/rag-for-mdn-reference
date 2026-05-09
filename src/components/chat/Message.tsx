@@ -4,11 +4,11 @@ import { clsx } from "clsx";
 import { Bot, ExternalLink, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Message } from "@/components/chat/Message.types";
+import { type ChatMessage } from "@/components/chat/Message.types";
 import { getMarkdownComponents } from "@/components/chat/markdown/MarkdownComponents";
 
 interface ChatMessageProps {
-	message: Message;
+	message: ChatMessage;
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {

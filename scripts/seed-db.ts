@@ -19,6 +19,7 @@ interface ChunkData {
 	pageType: string;
 	heading: string | null;
 	headingLevel: number | null;
+	headingLineNumber: number | null;
 	startLine: number;
 	endLine: number;
 }
@@ -71,78 +72,81 @@ async function seedDatabase(): Promise<void> {
 	console.log(`Found ${documentGroups.size} unique documents`);
 
 	console.log("Clearing existing data...");
-	await db.delete(chunksTable);
-	await db.delete(documentsTable);
 
-	console.log("Inserting documents...");
-	const documentInsertions: Array<NewDocument> = [];
+	await db.transaction(async (tx) => {
+		const documentInsertions: Array<NewDocument> = [];
+		await tx.delete(chunksTable);
+		await tx.delete(documentsTable);
 
-	for (const [, group] of documentGroups) {
-		const result = await db
-			.insert(documentsTable)
-			.values({
+		console.log("Inserting documents...");
+
+		for (const [, group] of documentGroups) {
+			const result = await tx
+				.insert(documentsTable)
+				.values({
+					title: group.title,
+					slug: group.slug,
+					sourceFilePath: group.sourceFilePath,
+					pageType: group.pageType,
+					sidebar: "jsSidebar",
+					totalChunks: group.chunks.length,
+				})
+				.returning({ id: documentsTable.id });
+
+			documentInsertions.push({
+				id: result[0]!.id,
 				title: group.title,
 				slug: group.slug,
 				sourceFilePath: group.sourceFilePath,
 				pageType: group.pageType,
 				sidebar: "jsSidebar",
 				totalChunks: group.chunks.length,
-			})
-			.returning({ id: documentsTable.id });
-
-		documentInsertions.push({
-			id: result[0]!.id,
-			title: group.title,
-			slug: group.slug,
-			sourceFilePath: group.sourceFilePath,
-			pageType: group.pageType,
-			sidebar: "jsSidebar",
-			totalChunks: group.chunks.length,
-		});
-	}
-
-	console.log(`Inserted ${documentInsertions.length} documents`);
-
-	const documentIdBySlug = new Map<string, DocumentId>();
-	for (const doc of documentInsertions) {
-		documentIdBySlug.set(doc.slug, doc.id as DocumentId);
-	}
-
-	console.log("Inserting chunks...");
-	const chunkValues = chunks.map((chunk) => {
-		const documentId = documentIdBySlug.get(chunk.slug);
-		if (!documentId) {
-			throw new Error(`No document found for slug: ${chunk.slug}`);
+			});
 		}
 
-		return {
-			id: chunk.id as ChunkId,
-			documentId,
-			content: chunk.text,
-			chunkIndex: Number.parseInt(chunk.id.split("-").pop() || "0", 10),
-			startLine: chunk.startLine,
-			endLine: chunk.endLine,
-			headingContextText: chunk.heading,
-			headingContextLevel: chunk.headingLevel,
-			headingLineNumber: chunk.headingLevel ? chunk.startLine : null,
-			characterCount: chunk.text.length,
-			wordCount: chunk.text.split(/\s+/).filter(Boolean).length,
-			embedding: null,
-		};
-	});
+		console.log(`Inserted ${documentInsertions.length} documents`);
 
-	const BATCH_SIZE = 100;
-	for (let i = 0; i < chunkValues.length; i += BATCH_SIZE) {
-		const batch = chunkValues.slice(i, i + BATCH_SIZE);
-		await db.insert(chunksTable).values(batch);
+		const documentIdBySlug = new Map<string, DocumentId>();
+		for (const doc of documentInsertions) {
+			documentIdBySlug.set(doc.slug, doc.id as DocumentId);
+		}
+
+		console.log("Inserting chunks...");
+		const chunkValues = chunks.map((chunk) => {
+			const documentId = documentIdBySlug.get(chunk.slug);
+			if (!documentId) {
+				throw new Error(`No document found for slug: ${chunk.slug}`);
+			}
+
+			return {
+				id: chunk.id as ChunkId,
+				documentId,
+				content: chunk.text,
+				chunkIndex: Number.parseInt(chunk.id.split("-").pop() || "0", 10),
+				startLine: chunk.startLine,
+				endLine: chunk.endLine,
+				headingContextText: chunk.heading,
+				headingContextLevel: chunk.headingLevel,
+				headingLineNumber: chunk.headingLineNumber,
+				characterCount: chunk.text.length,
+				wordCount: chunk.text.split(/\s+/).filter(Boolean).length,
+				embedding: null,
+			};
+		});
+
+		const BATCH_SIZE = 100;
+		for (let i = 0; i < chunkValues.length; i += BATCH_SIZE) {
+			const batch = chunkValues.slice(i, i + BATCH_SIZE);
+			await tx.insert(chunksTable).values(batch);
+			console.log(
+				`Inserted batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(chunkValues.length / BATCH_SIZE)} (${batch.length} chunks)`,
+			);
+		}
+
 		console.log(
-			`Inserted batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(chunkValues.length / BATCH_SIZE)} (${batch.length} chunks)`,
+			`\nDone! Seeded ${documentInsertions.length} documents and ${chunks.length} chunks.`,
 		);
-	}
-
-	console.log(
-		`\nDone! Seeded ${documentInsertions.length} documents and ${chunks.length} chunks.`,
-	);
+	});
 }
 
 void seedDatabase().catch((error) => {

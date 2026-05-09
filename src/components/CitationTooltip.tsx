@@ -3,6 +3,7 @@
 import { clsx } from "clsx";
 import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChatSource } from "@/components/chat/Message.types";
 
 interface CitationTooltipProps {
@@ -103,60 +104,62 @@ export function CitationTooltip({
 				{citationNumber}
 			</span>
 
-			{isVisible && (
-				<>
-					{/* Backdrop for mobile */}
-					<div
-						className="fixed inset-0 z-40 lg:hidden"
-						onClick={() => setIsVisible(false)}
-					/>
+			{isVisible &&
+				createPortal(
+					<>
+						{/* Backdrop for mobile */}
+						<div
+							className="fixed inset-0 z-40 lg:hidden"
+							onClick={() => setIsVisible(false)}
+						/>
 
-					<div
-						ref={tooltipRef}
-						className={clsx(
-							"fixed z-50 w-80 p-4 bg-gray-900 border border-gray-700 rounded-lg shadow-xl",
-							"animate-in fade-in-0 zoom-in-95 duration-200",
-						)}
-						style={{
-							top: position.top,
-							left: position.left,
-						}}
-						role="tooltip"
-						aria-live="polite"
-					>
-						<div className="space-y-3">
-							<div className="flex items-start justify-between gap-2">
-								<h4 className="font-semibold text-white text-sm leading-tight">
-									{source.title}
-								</h4>
-								<span className="text-xs bg-purple-600 text-white px-1.5 py-0.5 rounded font-mono shrink-0">
-									{citationNumber}
-								</span>
+						<div
+							ref={tooltipRef}
+							className={clsx(
+								"fixed z-50 w-80 p-4 bg-gray-900 border border-gray-700 rounded-lg shadow-xl",
+								"animate-in fade-in-0 zoom-in-95 duration-200",
+							)}
+							style={{
+								top: position.top,
+								left: position.left,
+							}}
+							role="tooltip"
+							aria-live="polite"
+						>
+							<div className="space-y-3">
+								<div className="flex items-start justify-between gap-2">
+									<h4 className="font-semibold text-white text-sm leading-tight">
+										{source.title}
+									</h4>
+									<span className="text-xs bg-purple-600 text-white px-1.5 py-0.5 rounded font-mono shrink-0">
+										{citationNumber}
+									</span>
+								</div>
+
+								<p className="text-sm text-gray-300 leading-relaxed">
+									{source.snippet}
+								</p>
+
+								<div className="pt-2 border-t border-gray-700">
+									<a
+										href={source.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+										onClick={(e) => e.stopPropagation()}
+									>
+										<span>View on MDN</span>
+										<ExternalLink className="w-3 h-3" />
+									</a>
+								</div>
 							</div>
 
-							<p className="text-sm text-gray-300 leading-relaxed">
-								{source.snippet}
-							</p>
-
-							<div className="pt-2 border-t border-gray-700">
-								<a
-									href={source.url}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
-									onClick={(e) => e.stopPropagation()}
-								>
-									<span>View on MDN</span>
-									<ExternalLink className="w-3 h-3" />
-								</a>
-							</div>
+							{/* Arrow */}
+							<div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 border-l border-t border-gray-700 rotate-45" />
 						</div>
-
-						{/* Arrow */}
-						<div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 border-l border-t border-gray-700 rotate-45" />
-					</div>
-				</>
-			)}
+					</>,
+					document.body,
+				)}
 		</>
 	);
 }

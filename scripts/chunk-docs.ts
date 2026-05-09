@@ -3,12 +3,6 @@ import path from "node:path";
 
 import { MarkdownTextSplitter } from "@langchain/textsplitters";
 
-declare global {
-	interface ImportMeta {
-		dir: string;
-	}
-}
-
 interface FrontmatterData {
 	title: string;
 	slug: string;
@@ -25,6 +19,7 @@ interface ChunkOutput {
 	pageType: string;
 	heading: string | null;
 	headingLevel: number | null;
+	headingLineNumber: number | null;
 	startLine: number;
 	endLine: number;
 }
@@ -314,6 +309,7 @@ async function main(): Promise<void> {
 				pageType: payload.frontmatter.pageType,
 				heading: heading?.text ?? null,
 				headingLevel: heading?.level ?? null,
+				headingLineNumber: heading?.line ?? null,
 				startLine,
 				endLine,
 			});

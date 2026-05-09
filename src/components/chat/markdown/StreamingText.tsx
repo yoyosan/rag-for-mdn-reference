@@ -15,13 +15,18 @@ export function StreamingText({
 			return;
 		}
 
-		let index = 0;
 		const interval = setInterval(() => {
-			index++;
-			setDisplayedContent(content.slice(0, index));
-			if (index >= content.length) {
-				clearInterval(interval);
-			}
+			setDisplayedContent((prev) => {
+				const isAppend = content.startsWith(prev);
+				const nextIndex = isAppend ? prev.length + 1 : 1;
+				const next = content.slice(0, nextIndex);
+
+				if (nextIndex >= content.length) {
+					clearInterval(interval);
+				}
+
+				return next;
+			});
 		}, 20);
 
 		// Clear the interval on unmount or when streaming stops

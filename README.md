@@ -42,7 +42,7 @@ Create a `.env.local` file in the project root with your database connection:
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/unlearn-rag-course
 ```
 
-The `.env` file should remain empty — drizzle-kit auto-loads it and would override `.env.local` if it contains values.
+Only `.env.local` is needed — drizzle-kit is configured to load it explicitly via `--env-file=.env.local`.
 
 ### 4. Run database migrations
 
@@ -58,7 +58,7 @@ This creates all tables: `documents`, `chunks`, `conversations`, `messages`, and
 bun run db:seed
 ```
 
-This populates the database with MDN JavaScript documentation chunks (33 documents, ~1,180 chunks).
+This populates the database with MDN JavaScript documentation chunks (33 documents, ~1,180 chunks). All inserts run inside a database transaction — if any step fails, the database rolls back to its previous state.
 
 ### 6. Start the development server
 
@@ -119,6 +119,7 @@ Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
 │   │       └── messageSources.ts
 │   ├── types/
 │   │   ├── brands.ts       # Branded type definitions
+│   │   ├── bun.d.ts        # Bun runtime type declarations
 │   │   └── entities/       # Entity type exports
 │   └── lib/
 │       └── branded.ts      # Branded type helper
@@ -126,7 +127,7 @@ Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
 ├── scripts/
 │   ├── chunk-docs.ts       # Document chunking script
 │   └── seed-db.ts          # Database seeding script
-├── chunks.json             # Generated chunk data
+├── chunks.json             # Generated chunk data (gitignored)
 ├── drizzle.config.ts       # Drizzle Kit configuration
 └── .env.local              # Environment variables (not committed)
 ```

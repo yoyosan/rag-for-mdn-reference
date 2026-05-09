@@ -1,6 +1,6 @@
-import { Message } from "@/components/chat/Message.types";
+import { ChatMessage } from "@/components/chat/Message.types";
 
-export function demoMessage(prompt: string): Message {
+export function demoMessage(prompt: string): ChatMessage {
 	return {
 		id: (Date.now() + 1).toString(),
 		type: "ai",

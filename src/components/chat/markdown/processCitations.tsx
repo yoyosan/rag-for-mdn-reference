@@ -48,5 +48,5 @@ export function processCitations(
 		parts.push(content.slice(lastIndex));
 	}
 
-	return parts.length > 0 ? parts : [content];
+	return parts;
 }

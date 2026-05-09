@@ -4,7 +4,7 @@ import { ExternalLink } from "lucide-react";
 import type { ComponentPropsWithoutRef } from "react";
 import React from "react";
 import type { Components, ExtraProps } from "react-markdown";
-import type { Message } from "@/components/chat/Message.types";
+import type { ChatMessage } from "@/components/chat/Message.types";
 import { CodeBlock } from "@/components/chat/markdown/CodeBlock";
 import { processCitations } from "@/components/chat/markdown/processCitations";
 import { StreamingText } from "@/components/chat/markdown/StreamingText";
@@ -15,26 +15,8 @@ type CodeProps = ComponentPropsWithoutRef<"code"> & ExtraProps;
  * Returns a components object for ReactMarkdown that is tailored to the current message.
  * This allows dynamic behavior based on whether the message is still streaming.
  */
-export function getMarkdownComponents(message: Message): Components {
+export function getMarkdownComponents(message: ChatMessage): Components {
 	return {
-		// Code blocks (inline or multi‑line)
-		// code({ inline, className, children, ...props }: CodeProps) {
-		// 	const content = String(children).replace(/\n$/, "");
-		// 	if (message.isStreaming) {
-		// 		return inline ? (
-		// 			<StreamingText content={content} isStreaming={true} />
-		// 		) : (
-		// 			<div className="my-4">
-		// 				<StreamingText content={content} isStreaming={true} />
-		// 			</div>
-		// 		);
-		// 	}
-		// 	return (
-		// 		<CodeBlock inline={inline} className={className} {...props}>
-		// 			{content}
-		// 		</CodeBlock>
-		// 	);
-		// },
 		code({ className, children, ...props }: CodeProps) {
 			const content = String(children).replace(/\n$/, "");
 			const isBlock = /language-/.test(className || "");

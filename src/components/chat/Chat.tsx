@@ -6,8 +6,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ContextPanel } from "@/components/ContextPanel";
 import { demoMessage } from "@/components/chat/demoMessage";
 import { ChatHeader } from "@/components/chat/Header";
-import { ChatMessage } from "@/components/chat/Message";
-import { Message } from "@/components/chat/Message.types";
+import { ChatMessage as ChatMessageComponent } from "@/components/chat/Message";
+import { ChatMessage } from "@/components/chat/Message.types";
 import { ExportDialog } from "@/components/ExportDialog";
 
 const initialPrompts = [
@@ -17,7 +17,7 @@ const initialPrompts = [
 ];
 
 export function Chat() {
-	const [messages, setMessages] = useState<Message[]>([]);
+	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [input, setInput] = useState("");
 	const [isContextPanelOpen, setIsContextPanelOpen] = useState(false);
 	const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
@@ -54,7 +54,7 @@ export function Chat() {
 			return;
 		}
 
-		const userMessage: Message = {
+		const userMessage: ChatMessage = {
 			id: Date.now().toString(),
 			type: "user",
 			content: prompt,
@@ -67,7 +67,7 @@ export function Chat() {
 
 		// Simulate AI response with streaming
 		responseTimeoutRef.current = setTimeout(() => {
-			const aiMessage: Message = demoMessage(prompt);
+			const aiMessage: ChatMessage = demoMessage(prompt);
 
 			setMessages((prev) => [...prev, aiMessage]);
 			setIsLoading(false);
@@ -155,7 +155,7 @@ export function Chat() {
 						</div>
 					) : (
 						messages.map((message) => (
-							<ChatMessage key={message.id} message={message} />
+							<ChatMessageComponent key={message.id} message={message} />
 						))
 					)}
 
