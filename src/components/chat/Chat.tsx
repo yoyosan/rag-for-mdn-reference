@@ -55,7 +55,7 @@ export function Chat() {
 		}
 
 		const userMessage: ChatMessage = {
-			id: Date.now().toString(),
+			id: crypto.randomUUID(),
 			type: "user",
 			content: prompt,
 			timestamp: new Date(),
@@ -111,7 +111,7 @@ export function Chat() {
 	};
 
 	return (
-		<div className="flex h-screen bg-[#0f0f23] text-white">
+		<div className="flex h-screen bg-gray-950 text-white">
 			{/* Main Chat Area */}
 			<div
 				className={clsx(

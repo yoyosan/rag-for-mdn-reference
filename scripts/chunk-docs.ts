@@ -323,7 +323,9 @@ async function main(): Promise<void> {
 	);
 }
 
-void main().catch((error) => {
+try {
+	await main();
+} catch (error) {
 	console.error("Failed to chunk markdown docs:", error);
 	process.exitCode = 1;
-});
+}

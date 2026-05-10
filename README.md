@@ -12,7 +12,7 @@ A Next.js project demonstrating Retrieval-Augmented Generation (RAG) with vector
 ### 1. Install dependencies
 
 ```bash
-bun install
+bun i
 ```
 
 ### 2. Set up PostgreSQL
@@ -60,7 +60,23 @@ bun run db:seed
 
 This populates the database with MDN JavaScript documentation chunks (33 documents, ~1,180 chunks). All inserts run inside a database transaction — if any step fails, the database rolls back to its previous state.
 
-### 6. Start the development server
+### 6. Generate embeddings
+
+Add your Voyage AI API key to `.env.local`:
+
+```bash
+VOYAGE_API_KEY=your_key_here
+```
+
+Then generate embeddings for all chunks:
+
+```bash
+bun run db:embeddings
+```
+
+This sends chunks to Voyage AI in batches of 128 and stores the resulting 1024-dimensional vectors in the `chunks.embedding` column. The script only processes chunks that don't already have embeddings, so it's safe to re-run.
+
+### 7. Start the development server
 
 ```bash
 bun run dev
@@ -126,7 +142,8 @@ Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
 ├── drizzle/                # Migration files
 ├── scripts/
 │   ├── chunk-docs.ts       # Document chunking script
-│   └── seed-db.ts          # Database seeding script
+│   ├── seed-db.ts          # Database seeding script
+│   └── generate-embeddings.ts # Generate Voyage AI embeddings
 ├── chunks.json             # Generated chunk data (gitignored)
 ├── drizzle.config.ts       # Drizzle Kit configuration
 └── .env.local              # Environment variables (not committed)
@@ -144,9 +161,10 @@ bun run lint         # Run Biome linter
 bun run lint:fix     # Fix linting issues
 bun run check-all    # Run type-check + lint
 bun run chunk-docs   # Process and chunk documents
-bun run db:generate  # Generate Drizzle migrations
-bun run db:migrate   # Apply database migrations
-bun run db:seed      # Seed database with chunk data
+bun run db:generate   # Generate Drizzle migrations
+bun run db:migrate    # Apply database migrations
+bun run db:seed       # Seed database with chunk data
+bun run db:embeddings # Generate Voyage AI embeddings for chunks
 ```
 
 ## Tech Stack
@@ -155,6 +173,7 @@ bun run db:seed      # Seed database with chunk data
 - **Styling**: [Tailwind CSS](https://tailwindcss.com)
 - **Database**: PostgreSQL + [Drizzle ORM](https://orm.drizzle.team)
 - **Vector Search**: [pgvector](https://github.com/pgvector/pgvector)
+- **Embeddings**: [Voyage AI](https://www.voyageai.com)
 - **AI/LLM**: [LangChain](https://js.langchain.com)
 - **Runtime**: [Bun](https://bun.sh)
 - **Linting**: [Biome](https://biomejs.dev)

@@ -228,14 +228,26 @@
 						"noDangerouslySetInnerHtmlWithChildren": "error"
 					},
 					"style": {
-						"noHeadElement": "warn"
+						"noCommonJs": "error",
+						"noHeadElement": "warn",
+						"noNamespace": "error",
+						"useArrayLiterals": "error",
+						"useAsConstAssertion": "error",
+						"noNonNullAssertion": "error"
 					},
 					"suspicious": {
 						"noCommentText": "error",
 						"noDocumentImportInPage": "error",
 						"noDuplicateJsxProps": "error",
+						"useGoogleFontDisplay": "warn",
+						"noExplicitAny": "error",
+						"noExtraNonNullAssertion": "error",
 						"noHeadImportInDocument": "error",
-						"useGoogleFontDisplay": "warn"
+						"noMisleadingInstantiator": "error",
+						"noNonNullAssertedOptionalChain": "error",
+						"noUnsafeDeclarationMerging": "error",
+						"noUnusedExpressions": "off",
+						"useNamespaceKeyword": "error"
 					}
 				}
 			}

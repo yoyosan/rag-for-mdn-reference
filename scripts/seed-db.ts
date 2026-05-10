@@ -1,14 +1,11 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { config } from "dotenv";
 
-config({ path: ".env.local" });
-
-import { db } from "@/db";
+import { db, pool } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
 import { documentsTable } from "@/db/schema/documents";
 import type { ChunkId, DocumentId } from "@/types/brands";
-import { NewDocument } from "@/types/entities/document";
+import { InsertedDocument } from "@/types/entities/document";
 
 interface ChunkData {
 	id: string;
@@ -53,10 +50,10 @@ function groupChunksByDocument(chunks: ChunkData[]): DocumentGroups {
 				slug: chunk.slug,
 				sourceFilePath: chunk.source,
 				pageType: chunk.pageType,
-				chunks: [],
+				chunks: [chunk],
 			});
 		} else {
-			groups.get(key)!.chunks.push(chunk);
+			groups.get(key)?.chunks.push(chunk);
 		}
 	}
 
@@ -74,7 +71,7 @@ async function seedDatabase(): Promise<void> {
 	console.log("Clearing existing data...");
 
 	await db.transaction(async (tx) => {
-		const documentInsertions: Array<NewDocument> = [];
+		const documentInsertions: Array<InsertedDocument> = [];
 		await tx.delete(chunksTable);
 		await tx.delete(documentsTable);
 
@@ -94,7 +91,7 @@ async function seedDatabase(): Promise<void> {
 				.returning({ id: documentsTable.id });
 
 			documentInsertions.push({
-				id: result[0]!.id,
+				id: result[0].id,
 				title: group.title,
 				slug: group.slug,
 				sourceFilePath: group.sourceFilePath,
@@ -108,7 +105,7 @@ async function seedDatabase(): Promise<void> {
 
 		const documentIdBySlug = new Map<string, DocumentId>();
 		for (const doc of documentInsertions) {
-			documentIdBySlug.set(doc.slug, doc.id as DocumentId);
+			documentIdBySlug.set(doc.slug, doc.id);
 		}
 
 		console.log("Inserting chunks...");
@@ -149,7 +146,11 @@ async function seedDatabase(): Promise<void> {
 	});
 }
 
-void seedDatabase().catch((error) => {
+try {
+	await seedDatabase();
+} catch (error) {
 	console.error("Seed failed:", error);
 	process.exit(1);
-});
+} finally {
+	await pool.end();
+}
