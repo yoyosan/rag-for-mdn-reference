@@ -47,7 +47,7 @@ Only `.env.local` is needed — drizzle-kit is configured to load it explicitly 
 ### 4. Run database migrations
 
 ```bash
-bun run db:migrate
+bun db:migrate
 ```
 
 This creates all tables: `documents`, `chunks`, `conversations`, `messages`, and `message_sources`.
@@ -55,7 +55,7 @@ This creates all tables: `documents`, `chunks`, `conversations`, `messages`, and
 ### 5. Seed the database
 
 ```bash
-bun run db:seed
+bun db:seed
 ```
 
 This populates the database with MDN JavaScript documentation chunks (33 documents, ~1,180 chunks). All inserts run inside a database transaction — if any step fails, the database rolls back to its previous state.
@@ -71,7 +71,7 @@ VOYAGE_API_KEY=your_key_here
 Then generate embeddings for all chunks:
 
 ```bash
-bun run db:embeddings
+bun db:embeddings
 ```
 
 This sends chunks to Voyage AI in batches of 128 and stores the resulting 1024-dimensional vectors in the `chunks.embedding` column. The script only processes chunks that don't already have embeddings, so it's safe to re-run.
@@ -79,7 +79,7 @@ This sends chunks to Voyage AI in batches of 128 and stores the resulting 1024-d
 ### 7. Start the development server
 
 ```bash
-bun run dev
+bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -106,13 +106,13 @@ The database uses **branded types** for type-safe IDs. Each table uses UUID prim
 
 ```bash
 # Generate migrations from schema changes
-bun run db:generate
+bun db:generate
 
 # Apply pending migrations
-bun run db:migrate
+bun db:migrate
 
 # Seed the database with chunk data
-bun run db:seed
+bun db:seed
 ```
 
 Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
@@ -154,17 +154,17 @@ Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
 ### Available Scripts
 
 ```bash
-bun run dev          # Start development server
-bun run build        # Production build
-bun run type-check   # TypeScript type checking
-bun run lint         # Run Biome linter
-bun run lint:fix     # Fix linting issues
-bun run check-all    # Run type-check + lint
-bun run chunk-docs   # Process and chunk documents
-bun run db:generate   # Generate Drizzle migrations
-bun run db:migrate    # Apply database migrations
-bun run db:seed       # Seed database with chunk data
-bun run db:embeddings # Generate Voyage AI embeddings for chunks
+bun dev          # Start development server
+bun build        # Production build
+bun type-check   # TypeScript type checking
+bun lint         # Run Biome linter
+bun lint:fix     # Fix linting issues
+bun check-all    # Run type-check + lint
+bun chunk-docs   # Process and chunk documents
+bun db:generate   # Generate Drizzle migrations
+bun db:migrate    # Apply database migrations
+bun db:seed       # Seed database with chunk data
+bun db:embeddings # Generate Voyage AI embeddings for chunks
 ```
 
 ## Tech Stack
