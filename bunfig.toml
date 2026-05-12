@@ -30,8 +30,8 @@ auto = "disable"
 
 # 8. Security scanner (optional but recommended).
 #    Install one first: `bun add -d @your-scanner/bun-security-scanner`
-# [install.security]
-# scanner = "@your-scanner/bun-security-scanner"
+[install.security]
+scanner = "bun-scan"
 # --- Registry Configuration ---
 # 9. Scoped registry: Force internal scopes to your private registry.
 #    Prevents dependency confusion attacks where an attacker publishes @yourorg/pkg to npm.
