@@ -143,9 +143,11 @@ Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
 ├── scripts/
 │   ├── chunk-docs.ts       # Document chunking script
 │   ├── seed-db.ts          # Database seeding script
-│   └── generate-embeddings.ts # Generate Voyage AI embeddings
+│   ├── generate-embeddings.ts # Generate Voyage AI embeddings
+│   └── semantic-search.ts  # Semantic search CLI
 ├── chunks.json             # Generated chunk data (gitignored)
 ├── drizzle.config.ts       # Drizzle Kit configuration
+├── bunfig.toml             # Bun configuration (supply chain security)
 └── .env.local              # Environment variables (not committed)
 ```
 
@@ -165,6 +167,7 @@ bun db:generate   # Generate Drizzle migrations
 bun db:migrate    # Apply database migrations
 bun db:seed       # Seed database with chunk data
 bun db:embeddings # Generate Voyage AI embeddings for chunks
+bun semantic-search "your question"  # Search chunks by semantic similarity
 ```
 
 ## Tech Stack

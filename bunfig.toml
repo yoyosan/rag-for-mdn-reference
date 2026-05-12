@@ -1,0 +1,46 @@
+[install]
+# --- Supply Chain Protection ---
+# 1. Disable ALL lifecycle scripts by default.
+#    Only packages explicitly listed in package.json's `trustedDependencies` will run scripts.
+ignoreScripts = true
+
+# 2. Minimum release age: Only install versions published at least 7 days ago.
+#    This is your primary defense against typosquatting, protestware, and compromised publishes.
+#    604800 seconds = 7 days
+minimumReleaseAge = 604800
+
+# 3. Exempt packages that you legitimately need immediately (e.g., types you publish yourself).
+#    Keep this list extremely short.
+# minimumReleaseAgeExcludes = ["@yourorg/internal-pkg"]
+# 4. Use exact versions in package.json instead of caret (^) ranges.
+#    Prevents accidental upgrades to compromised patch/minor versions.
+exact = true
+
+# 5. Prefer offline resolution when possible (uses local cache).
+#    Reduces exposure to registry compromises during install.
+prefer = "offline"
+
+# 6. Lockfile integrity: In CI, use --frozen-lockfile.
+#    This prevents the lockfile from drifting unexpectedly.
+#    (Set via CI env or CLI flag, but you can default it here for safety)
+# frozenLockfile = true  # Uncomment if you want this as default behavior
+# 7. Disable auto-install (Bun's on-the-fly package fetching).
+#    Forces explicit `bun install` and prevents runtime resolution attacks.
+auto = "disable"
+
+# 8. Security scanner (optional but recommended).
+#    Install one first: `bun add -d @your-scanner/bun-security-scanner`
+# [install.security]
+# scanner = "@your-scanner/bun-security-scanner"
+# --- Registry Configuration ---
+# 9. Scoped registry: Force internal scopes to your private registry.
+#    Prevents dependency confusion attacks where an attacker publishes @yourorg/pkg to npm.
+# [install.scopes]
+# yourorg = { url = "https://registry.yourorg.com", token = "$NPM_TOKEN" }
+
+[run]
+# 10. Auto-alias node to bun for scripts (reduces node binary tampering surface)
+bun = true
+
+# 11. Disable telemetry/crash reporting
+telemetry = false
