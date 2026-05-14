@@ -21,11 +21,11 @@ Install PostgreSQL and the pgvector extension:
 
 ```bash
 # macOS with Homebrew
-brew install postgresql@17
+brew install postgresql@18
 brew install pgvector
 
 # Start PostgreSQL
-brew services start postgresql@17
+brew services start postgresql@18
 
 # Create the database
 createdb unlearn-rag-course
@@ -36,13 +36,13 @@ psql -d unlearn-rag-course -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
 ### 3. Configure environment variables
 
-Create a `.env.local` file in the project root with your database connection:
+Create a `.env.local` file in the project root:
 
 ```bash
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/unlearn-rag-course
+VOYAGE_API_KEY=your_voyage_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
 ```
-
-Only `.env.local` is needed — drizzle-kit is configured to load it explicitly via `--env-file=.env.local`.
 
 ### 4. Run database migrations
 
@@ -52,7 +52,17 @@ bun db:migrate
 
 This creates all tables: `documents`, `chunks`, `conversations`, `messages`, and `message_sources`.
 
-### 5. Seed the database
+### 5. Generate chunk data
+
+Process the MDN documentation into chunks:
+
+```bash
+bun chunk-docs
+```
+
+This creates `chunks.json` from the markdown files in `mdn-js-docs/`.
+
+### 6. Seed the database
 
 ```bash
 bun db:seed
@@ -60,7 +70,7 @@ bun db:seed
 
 This populates the database with MDN JavaScript documentation chunks (33 documents, ~1,180 chunks). All inserts run inside a database transaction — if any step fails, the database rolls back to its previous state.
 
-### 6. Generate embeddings
+### 7. Generate embeddings
 
 Add your Voyage AI API key to `.env.local`:
 
@@ -76,7 +86,19 @@ bun db:embeddings
 
 This sends chunks to Voyage AI in batches of 128 and stores the resulting 1024-dimensional vectors in the `chunks.embedding` column. The script only processes chunks that don't already have embeddings, so it's safe to re-run.
 
-### 7. Start the development server
+### 8. Query with RAG
+
+```bash
+bun rag-query "What is a closure in JavaScript?"
+```
+
+This performs semantic search and queries the Groq LLM with retrieved context. Supports `--limit` and `--threshold` flags:
+
+```bash
+bun rag-query "your question" --limit=10 --threshold=0.6
+```
+
+### 9. Start the development server
 
 ```bash
 bun dev
@@ -144,7 +166,8 @@ Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
 │   ├── chunk-docs.ts       # Document chunking script
 │   ├── seed-db.ts          # Database seeding script
 │   ├── generate-embeddings.ts # Generate Voyage AI embeddings
-│   └── semantic-search.ts  # Semantic search CLI
+│   ├── semantic-search.ts  # Semantic search CLI
+│   └── rag-query.ts        # RAG query with Groq LLM
 ├── chunks.json             # Generated chunk data (gitignored)
 ├── drizzle.config.ts       # Drizzle Kit configuration
 ├── bunfig.toml             # Bun configuration (supply chain security)
@@ -168,6 +191,7 @@ bun db:migrate    # Apply database migrations
 bun db:seed       # Seed database with chunk data
 bun db:embeddings # Generate Voyage AI embeddings for chunks
 bun semantic-search "your question"  # Search chunks by semantic similarity
+bun rag-query "your question"        # RAG query with LLM response
 ```
 
 ## Tech Stack

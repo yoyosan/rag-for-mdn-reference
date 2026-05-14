@@ -3,7 +3,7 @@ import { VoyageAIClient } from "voyageai";
 import { db, pool } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
 import { documentsTable } from "@/db/schema/documents";
-import { ChunkId } from "@/types/brands";
+import { SearchResult } from "@/types/semanticSearch";
 
 if (!process.env.VOYAGE_API_KEY) {
 	throw new Error("VOYAGE_API_KEY is required in .env.local");
@@ -12,17 +12,6 @@ if (!process.env.VOYAGE_API_KEY) {
 const voyageClient = new VoyageAIClient({
 	apiKey: process.env.VOYAGE_API_KEY,
 });
-
-type SearchResult = {
-	chunkId: ChunkId;
-	documentTitle: string;
-	content: string;
-	headingContext: string | null;
-	similarity: number;
-	characterCount: number;
-	wordCount: number;
-	sourceFilePath: string;
-};
 
 async function generateQuestionEmbedding(question: string): Promise<number[]> {
 	console.log(`🔮 Generating embedding for question...`);
@@ -134,7 +123,7 @@ function displayResults(results: SearchResult[], question: string): void {
 	console.log("\n" + "=".repeat(80));
 }
 
-async function performSemanticSearch(
+export async function performSemanticSearch(
 	question: string,
 	limit: number = 5,
 	similarityThreshold: number = 0.5,
