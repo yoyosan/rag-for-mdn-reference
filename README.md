@@ -44,6 +44,11 @@ VOYAGE_API_KEY=your_voyage_api_key_here
 GROQ_API_KEY=your_groq_api_key_here
 ```
 
+**Where to get your API keys:**
+
+- **Voyage AI** — Sign up at [voyageai.com](https://www.voyageai.com) and create an API key from the dashboard
+- **Groq** — Sign up at [groq.com](https://groq.com) and generate an API key from your account settings
+
 ### 4. Run database migrations
 
 ```bash
@@ -155,6 +160,12 @@ Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
 │   │       ├── conversations.ts
 │   │       ├── messages.ts
 │   │       └── messageSources.ts
+│   ├── lib/                 # Core business logic (UI & CLI share these)
+│   │   ├── branded.ts      # Branded type helper
+│   │   ├── chunking.ts     # Markdown parsing & document chunking
+│   │   ├── embeddings.ts   # Voyage AI embedding generation
+│   │   ├── rag.ts          # RAG pipeline (search + LLM query)
+│   │   └── search.ts       # Semantic search (embedding + vector query)
 │   ├── types/
 │   │   ├── brands.ts       # Branded type definitions
 │   │   ├── bun.d.ts        # Bun runtime type declarations
@@ -162,17 +173,22 @@ Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
 │   └── lib/
 │       └── branded.ts      # Branded type helper
 ├── drizzle/                # Migration files
-├── scripts/
-│   ├── chunk-docs.ts       # Document chunking script
-│   ├── seed-db.ts          # Database seeding script
-│   ├── generate-embeddings.ts # Generate Voyage AI embeddings
+├── scripts/                 # CLI wrappers (thin entry points)
+│   ├── chunk-docs.ts       # Document chunking CLI
+│   ├── seed-db.ts          # Database seeding CLI
+│   ├── generate-embeddings.ts # Generate embeddings CLI
 │   ├── semantic-search.ts  # Semantic search CLI
-│   └── rag-query.ts        # RAG query with Groq LLM
+│   └── rag-query.ts        # RAG query CLI
+├── scripts/README.md       # Detailed script documentation
 ├── chunks.json             # Generated chunk data (gitignored)
 ├── drizzle.config.ts       # Drizzle Kit configuration
 ├── bunfig.toml             # Bun configuration (supply chain security)
 └── .env.local              # Environment variables (not committed)
 ```
+
+### Architecture Note
+
+Core logic lives in `src/lib/` and is shared between the CLI scripts and the Next.js UI. Scripts in `scripts/` are thin wrappers that handle argument parsing, display formatting, and cleanup. For detailed script usage and options, see [`scripts/README.md`](./scripts/README.md).
 
 ## Development
 
@@ -193,6 +209,8 @@ bun db:embeddings # Generate Voyage AI embeddings for chunks
 bun semantic-search "your question"  # Search chunks by semantic similarity
 bun rag-query "your question"        # RAG query with LLM response
 ```
+
+For detailed usage, options, and prerequisites for each script, see [`scripts/README.md`](./scripts/README.md).
 
 ## Tech Stack
 

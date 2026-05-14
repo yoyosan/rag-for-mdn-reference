@@ -1,20 +1,9 @@
-import { eq, isNull } from "drizzle-orm";
-import { VoyageAIClient } from "voyageai";
+import { isNull } from "drizzle-orm";
 import { db, pool } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
-import { Chunk } from "@/types/entities/chunk";
+import { ChunkRow, generateEmbeddings, voyageClient } from "@/lib/embeddings";
 
 const VOYAGE_MAX_BATCH_SIZE = 128;
-
-if (!process.env.VOYAGE_API_KEY) {
-	throw new Error("VOYAGE_API_KEY is required in .env.local");
-}
-
-const voyageClient = new VoyageAIClient({
-	apiKey: process.env.VOYAGE_API_KEY,
-});
-
-type ChunkRow = Pick<Chunk, "id" | "content">;
 
 async function fetchChunksWithoutEmbeddings(): Promise<ChunkRow[]> {
 	return db
@@ -24,34 +13,6 @@ async function fetchChunksWithoutEmbeddings(): Promise<ChunkRow[]> {
 		})
 		.from(chunksTable)
 		.where(isNull(chunksTable.embedding));
-}
-
-async function generateEmbeddings(chunks: ChunkRow[]): Promise<void> {
-	const texts = chunks.map((chunk) => chunk.content);
-	const response = await voyageClient.embed({
-		input: texts,
-		model: "voyage-4-large",
-		inputType: "document",
-	});
-
-	if (!response.data || response.data.length !== chunks.length) {
-		throw new Error(
-			`Embedding count mismatch: expected ${chunks.length}, got ${response.data?.length ?? 0}`,
-		);
-	}
-
-	if (response.data.some((d) => !d.embedding)) {
-		throw new Error("Received embeddings with missing data");
-	}
-
-	for (const [i, chunk] of chunks.entries()) {
-		const embedding = response.data[i].embedding;
-
-		await db
-			.update(chunksTable)
-			.set({ embedding })
-			.where(eq(chunksTable.id, chunk.id));
-	}
 }
 
 async function generateAllEmbeddings(): Promise<void> {

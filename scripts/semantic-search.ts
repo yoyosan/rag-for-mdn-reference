@@ -1,83 +1,9 @@
-import { cosineDistance, eq, sql } from "drizzle-orm";
-import { VoyageAIClient } from "voyageai";
-import { db, pool } from "@/db";
-import { chunksTable } from "@/db/schema/chunks";
-import { documentsTable } from "@/db/schema/documents";
+import { pool } from "@/db";
+import { performSemanticSearch } from "@/lib/search";
 import { SearchResult } from "@/types/semanticSearch";
 
 if (!process.env.VOYAGE_API_KEY) {
 	throw new Error("VOYAGE_API_KEY is required in .env.local");
-}
-
-const voyageClient = new VoyageAIClient({
-	apiKey: process.env.VOYAGE_API_KEY,
-});
-
-async function generateQuestionEmbedding(question: string): Promise<number[]> {
-	console.log(`🔮 Generating embedding for question...`);
-
-	try {
-		const response = await voyageClient.embed({
-			model: "voyage-4-large",
-			input: question,
-		});
-
-		if (!response.data || response.data.length === 0) {
-			throw new Error(`No embedding generated for question: ${question}`);
-		}
-		const embedding = response.data[0].embedding;
-		if (!embedding) {
-			throw new Error("Received embedding with missing data");
-		}
-
-		console.log(`✅ Generated embedding with ${embedding.length} dimensions`);
-
-		return embedding;
-	} catch (error) {
-		console.error("❌ Error generating embedding:", error);
-		throw error;
-	}
-}
-
-async function searchSimilarChunks(
-	questionEmbedding: number[],
-	limit: number = 5,
-	similarityThreshold: number = 0.5,
-): Promise<SearchResult[]> {
-	console.log(`🔍 Searching for ${limit} most similar chunks...`);
-
-	try {
-		const results = await db
-			.select({
-				chunkId: chunksTable.id,
-				documentTitle: documentsTable.title,
-				content: chunksTable.content,
-				headingContext: chunksTable.headingContextText,
-				// 1 - cosine_distance gives us cosine similarity (higher = more similar)
-				similarity: sql<number>`1 - (${cosineDistance(chunksTable.embedding, questionEmbedding)})`,
-				characterCount: chunksTable.characterCount,
-				wordCount: chunksTable.wordCount,
-				sourceFilePath: documentsTable.sourceFilePath,
-			})
-			.from(chunksTable)
-			.innerJoin(documentsTable, eq(chunksTable.documentId, documentsTable.id))
-			.where(sql`${chunksTable.embedding} IS NOT NULL`)
-			.orderBy(cosineDistance(chunksTable.embedding, questionEmbedding))
-			.limit(limit);
-
-		const filteredResults = results.filter(
-			(result) => result.similarity >= similarityThreshold,
-		);
-
-		console.log(
-			`✅ Found ${filteredResults.length} chunks above similarity threshold of ${similarityThreshold}`,
-		);
-
-		return filteredResults;
-	} catch (error) {
-		console.error("❌ Error searching similar chunks:", error);
-		throw error;
-	}
 }
 
 function displayResults(results: SearchResult[], question: string): void {
@@ -121,31 +47,6 @@ function displayResults(results: SearchResult[], question: string): void {
 	});
 
 	console.log("\n" + "=".repeat(80));
-}
-
-export async function performSemanticSearch(
-	question: string,
-	limit: number = 5,
-	similarityThreshold: number = 0.5,
-): Promise<SearchResult[]> {
-	console.log("🚀 Starting semantic search...\n");
-
-	try {
-		const questionEmbedding = await generateQuestionEmbedding(question);
-
-		const results = await searchSimilarChunks(
-			questionEmbedding,
-			limit,
-			similarityThreshold,
-		);
-
-		displayResults(results, question);
-
-		return results;
-	} catch (error) {
-		console.error("❌ Semantic search failed:", error);
-		throw error;
-	}
 }
 
 async function main(): Promise<void> {
@@ -215,7 +116,11 @@ async function main(): Promise<void> {
 		`Similarity threshold: ${(similarityThreshold * 100).toFixed(0)}%\n`,
 	);
 
-	await performSemanticSearch(question, limit, similarityThreshold);
+	console.log("🚀 Starting semantic search...\n");
+
+	await performSemanticSearch(question, limit, similarityThreshold, (results) =>
+		displayResults(results, question),
+	);
 }
 
 // Run the script only if the file was ran from cli
