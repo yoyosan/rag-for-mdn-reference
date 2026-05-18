@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import slug from "slug";
 import { performRAGQuery } from "@/lib/server/rag";
-import { chatRequestSchema } from "@/types/client/chat";
+import { chatRequestSchema } from "@/types/api/chat";
 
 function headingToSlug(headingText: string): string {
 	if (!headingText) {
