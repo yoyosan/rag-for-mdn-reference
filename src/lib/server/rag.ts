@@ -1,6 +1,7 @@
 import { groq } from "@ai-sdk/groq";
 import { generateText } from "ai";
-import { performSemanticSearch } from "@/lib/search";
+import { performSemanticSearch } from "@/lib/server/search";
+import { defaultModel } from "@/lib/shared/constants";
 import { SearchResult } from "@/types/semanticSearch";
 
 if (!process.env.GROQ_API_KEY) {
@@ -9,17 +10,9 @@ if (!process.env.GROQ_API_KEY) {
 
 export interface RAGResponse {
 	answer: string;
-	sources: Array<{
-		documentTitle: string;
-		sourceFilePath: string;
-		content: string;
-		similarity: number;
-	}>;
+	sources: SearchResult[];
 	tokensUsed?: number;
 }
-
-const defaultModel = "llama-3.3-70b-versatile";
-
 /**
  * Format retrieved chunks into context for the LLM
  */

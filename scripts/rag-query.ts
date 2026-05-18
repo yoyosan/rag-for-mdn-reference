@@ -1,5 +1,6 @@
 import { pool } from "@/db";
-import { performRAGQuery, RAGResponse } from "@/lib/rag";
+import { performRAGQuery, RAGResponse } from "@/lib/server/rag";
+import { defaultModel } from "@/lib/shared/constants";
 
 /**
  * Format and display the RAG response
@@ -102,15 +103,13 @@ async function main(): Promise<void> {
 			similarityThreshold * 100
 		).toFixed(0)}%)`,
 	);
-	console.log(`🤖 Using model: llama-3.3-70b-versatile\n`);
+	console.log(`🤖 Using model: ${defaultModel}\n`);
 
-	// Perform the RAG query
 	const response = await performRAGQuery(question, {
 		limit,
 		similarityThreshold,
 	});
 
-	// Display the response
 	displayRAGResponse(response, question);
 }
 

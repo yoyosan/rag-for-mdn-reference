@@ -1,5 +1,5 @@
 import { pool } from "@/db";
-import { performSemanticSearch } from "@/lib/search";
+import { performSemanticSearch } from "@/lib/server/search";
 import { SearchResult } from "@/types/semanticSearch";
 
 if (!process.env.VOYAGE_API_KEY) {
@@ -24,6 +24,7 @@ function displayResults(results: SearchResult[], question: string): void {
 		console.log(`\n📄 RESULT ${index + 1}:`);
 		console.log(`   📋 Document: ${result.documentTitle}`);
 		console.log(`   📁 Source: ${result.sourceFilePath}`);
+		console.log(`   🔗 Slug: ${result.documentSlug || "N/A"}`);
 		console.log(`   🎯 Similarity: ${(result.similarity * 100).toFixed(2)}%`);
 		console.log(
 			`   📏 Length: ${result.characterCount} chars, ${result.wordCount} words`,

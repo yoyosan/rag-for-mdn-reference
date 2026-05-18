@@ -2,7 +2,7 @@ import { cosineDistance, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
 import { documentsTable } from "@/db/schema/documents";
-import { voyageClient } from "@/lib/embeddings";
+import { voyageClient } from "@/lib/server/embeddings";
 import { SearchResult } from "@/types/semanticSearch";
 
 export async function generateQuestionEmbedding(
@@ -35,10 +35,11 @@ export async function searchSimilarChunks(
 			documentTitle: documentsTable.title,
 			content: chunksTable.content,
 			headingContext: chunksTable.headingContextText,
-			similarity: sql<number>`1 - (${cosineDistance(chunksTable.embedding, questionEmbedding)})`,
 			characterCount: chunksTable.characterCount,
 			wordCount: chunksTable.wordCount,
 			sourceFilePath: documentsTable.sourceFilePath,
+			documentSlug: documentsTable.slug,
+			similarity: sql<number>`1 - (${cosineDistance(chunksTable.embedding, questionEmbedding)})`,
 		})
 		.from(chunksTable)
 		.innerJoin(documentsTable, eq(chunksTable.documentId, documentsTable.id))

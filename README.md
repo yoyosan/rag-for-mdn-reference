@@ -144,53 +144,13 @@ bun db:seed
 
 Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
 
-## Project Structure
-
-```
-├── src/
-│   ├── app/                 # Next.js App Router
-│   ├── components/          # React components
-│   │   ├── chat/           # Chat interface
-│   │   └── ...
-│   ├── db/
-│   │   ├── index.ts        # Database connection
-│   │   └── schema/         # Drizzle schema modules
-│   │       ├── documents.ts
-│   │       ├── chunks.ts
-│   │       ├── conversations.ts
-│   │       ├── messages.ts
-│   │       └── messageSources.ts
-│   ├── lib/                 # Core business logic (UI & CLI share these)
-│   │   ├── branded.ts      # Branded type helper
-│   │   ├── chunking.ts     # Markdown parsing & document chunking
-│   │   ├── embeddings.ts   # Voyage AI embedding generation
-│   │   ├── rag.ts          # RAG pipeline (search + LLM query)
-│   │   └── search.ts       # Semantic search (embedding + vector query)
-│   ├── types/
-│   │   ├── brands.ts       # Branded type definitions
-│   │   ├── bun.d.ts        # Bun runtime type declarations
-│   │   └── entities/       # Entity type exports
-│   └── lib/
-│       └── branded.ts      # Branded type helper
-├── drizzle/                # Migration files
-├── scripts/                 # CLI wrappers (thin entry points)
-│   ├── chunk-docs.ts       # Document chunking CLI
-│   ├── seed-db.ts          # Database seeding CLI
-│   ├── generate-embeddings.ts # Generate embeddings CLI
-│   ├── semantic-search.ts  # Semantic search CLI
-│   └── rag-query.ts        # RAG query CLI
-├── scripts/README.md       # Detailed script documentation
-├── chunks.json             # Generated chunk data (gitignored)
-├── drizzle.config.ts       # Drizzle Kit configuration
-├── bunfig.toml             # Bun configuration (supply chain security)
-└── .env.local              # Environment variables (not committed)
-```
+## Development
 
 ### Architecture Note
-
-Core logic lives in `src/lib/` and is shared between the CLI scripts and the Next.js UI. Scripts in `scripts/` are thin wrappers that handle argument parsing, display formatting, and cleanup. For detailed script usage and options, see [`scripts/README.md`](./scripts/README.md).
-
-## Development
+- **Server logic** (`src/lib/server/`) — Pure functions for embedding generation, semantic search, and RAG. Used by both CLI scripts and the Next.js API route.
+- **Shared constants** (`src/lib/shared/`) — Configuration like default LLM model, shared between server and client.
+- **API route** (`src/app/api/chat/`) — Next.js route handler that validates requests and orchestrates the RAG pipeline.
+- **CLI scripts** (`scripts/`) — Thin wrappers around `src/lib/server/` functions for command-line usage.
 
 ### Available Scripts
 

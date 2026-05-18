@@ -10,7 +10,7 @@ import {
 	getLineRange,
 	loadFilePayload,
 	normalizeText,
-} from "@/lib/chunking";
+} from "@/lib/server/chunking";
 
 const projectRoot = path.resolve(import.meta.dir, "..");
 const docsRoot = path.resolve(projectRoot, "mdn-js-docs");

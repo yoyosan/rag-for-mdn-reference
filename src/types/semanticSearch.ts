@@ -9,4 +9,5 @@ export type SearchResult = {
 	characterCount: number;
 	wordCount: number;
 	sourceFilePath: string;
+	documentSlug: string | null;
 };

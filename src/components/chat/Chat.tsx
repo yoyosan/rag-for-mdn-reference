@@ -2,13 +2,13 @@
 
 import { clsx } from "clsx";
 import { Send } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ContextPanel } from "@/components/ContextPanel";
-import { demoMessage } from "@/components/chat/demoMessage";
 import { ChatHeader } from "@/components/chat/Header";
 import { ChatMessage as ChatMessageComponent } from "@/components/chat/Message";
 import { ChatMessage } from "@/components/chat/Message.types";
 import { ExportDialog } from "@/components/ExportDialog";
+import { defaultModel } from "@/lib/shared/constants";
 
 const initialPrompts = [
 	"What is the difference between let and var in JavaScript?",
@@ -23,29 +23,12 @@ export function Chat() {
 	const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
-	const responseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-	const streamingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-		null,
-	);
 
 	useEffect(() => {
 		if (messages.length > 0) {
 			messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 		}
 	}, [messages.length]);
-
-	const clearPendingTimeouts = useCallback(() => {
-		if (responseTimeoutRef.current) {
-			clearTimeout(responseTimeoutRef.current);
-			responseTimeoutRef.current = null;
-		}
-		if (streamingTimeoutRef.current) {
-			clearTimeout(streamingTimeoutRef.current);
-			streamingTimeoutRef.current = null;
-		}
-	}, []);
-
-	useEffect(() => () => clearPendingTimeouts(), [clearPendingTimeouts]);
 
 	const submitMessage = async () => {
 		const prompt = input.trim();
@@ -65,22 +48,53 @@ export function Chat() {
 		setInput("");
 		setIsLoading(true);
 
-		// Simulate AI response with streaming
-		responseTimeoutRef.current = setTimeout(() => {
-			const aiMessage: ChatMessage = demoMessage(prompt);
+		try {
+			const response = await fetch("/api/chat", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					message: prompt,
+					limit: 5,
+					threshold: 0.5,
+					model: defaultModel,
+				}),
+			});
 
+			if (!response.ok) {
+				const error = await response.json();
+				throw new Error(error.error || "Failed to process the question");
+			}
+
+			const data = await response.json();
+
+			const aiMessage: ChatMessage = {
+				id: crypto.randomUUID(),
+				type: "ai",
+				content: data.content,
+				timestamp: new Date(),
+				sources: data.sources,
+				isStreaming: false,
+			};
 			setMessages((prev) => [...prev, aiMessage]);
-			setIsLoading(false);
+		} catch (error) {
+			console.error("Chat error:", error);
 
-			// Simulate streaming completion
-			streamingTimeoutRef.current = setTimeout(() => {
-				setMessages((prev) =>
-					prev.map((msg) =>
-						msg.id === aiMessage.id ? { ...msg, isStreaming: false } : msg,
-					),
-				);
-			}, 2000);
-		}, 1000);
+			const errorMessage: ChatMessage = {
+				id: crypto.randomUUID(),
+				type: "ai",
+				content: `I apologize, but I encountered an error while processing your question: ${
+					error instanceof Error ? error.message : "Unknown error"
+				}. Please try again.`,
+				timestamp: new Date(),
+				sources: [],
+				isStreaming: false,
+			};
+			setMessages((prev) => [...prev, errorMessage]);
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
@@ -96,8 +110,6 @@ export function Chat() {
 	};
 
 	const clearChat = () => {
-		// clear timeouts first before clearing messages
-		clearPendingTimeouts();
 		setMessages([]);
 		setIsLoading(false);
 	};
