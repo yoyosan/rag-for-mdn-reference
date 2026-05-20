@@ -1,6 +1,6 @@
 import React from "react";
 import { CitationTooltip } from "@/components/CitationTooltip";
-import { ChatSource } from "@/components/chat/Message.types";
+import { ChatSource } from "@/types/web/message";
 
 export function processCitations(
 	content: string,

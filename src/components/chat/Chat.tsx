@@ -1,100 +1,107 @@
 "use client";
 
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import { clsx } from "clsx";
 import { Send } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ContextPanel } from "@/components/ContextPanel";
 import { ChatHeader } from "@/components/chat/Header";
 import { ChatMessage as ChatMessageComponent } from "@/components/chat/Message";
-import { ChatMessage } from "@/components/chat/Message.types";
+import { ChatMessageLoading } from "@/components/chat/MessageLoading";
 import { ExportDialog } from "@/components/ExportDialog";
-import { defaultModel } from "@/lib/shared/constants";
+import { getErrorDisplay } from "@/lib/helpers/general";
+import { AppUIMessage } from "@/types/api/aiMessage";
+import { ChatMessage } from "@/types/web/message";
 
 const initialPrompts = [
 	"What is the difference between let and var in JavaScript?",
-	"How do CSS Grid and Flexbox differ?",
-	"What are Web Components and how do I use them?",
+	"What is a closure in JavaScript?",
+	"JS array declaration",
 ];
 
 export function Chat() {
-	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [input, setInput] = useState("");
 	const [isContextPanelOpen, setIsContextPanelOpen] = useState(false);
 	const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-	const [isLoading, setIsLoading] = useState(false);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
+	const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	const { messages, sendMessage, status, setMessages, error } =
+		useChat<AppUIMessage>({
+			transport: new DefaultChatTransport({
+				api: "/api/chat",
+			}),
+		});
+	const isReady = status === "ready";
+	const isLoading = status === "submitted" || status === "streaming";
+	const isError = status === "error";
+
+	const chatMessages = useMemo<ChatMessage[]>(() => {
+		return messages.map((msg) => {
+			const isDone = msg?.parts?.some(
+				(part) => part.type === "text" && part.state === "done",
+			);
+
+			return {
+				id: msg.id,
+				type: msg.role === "user" ? "user" : "ai",
+				content:
+					msg.parts
+						?.filter((part) => part.type === "text")
+						.map((part) => ("text" in part ? part.text : ""))
+						.join("") || "",
+				timestamp: msg.metadata?.createdAt
+					? new Date(msg.metadata.createdAt)
+					: null,
+				sources: isDone
+					? msg.parts?.find((part) => {
+							return (
+								part?.type === "tool-queryKnowledgeBase" &&
+								part?.state === "output-available"
+							);
+						})?.output || []
+					: [],
+			};
+		});
+	}, [messages]);
 
 	useEffect(() => {
-		if (messages.length > 0) {
-			messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+		if (messages.length === 0) {
+			return;
 		}
-	}, [messages.length]);
+
+		if (!scrollTimerRef.current) {
+			scrollTimerRef.current = setTimeout(() => {
+				messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+				scrollTimerRef.current = null;
+			}, 20);
+		}
+
+		return () => {
+			if (scrollTimerRef.current) {
+				clearTimeout(scrollTimerRef.current);
+				scrollTimerRef.current = null;
+			}
+		};
+	}, [messages]);
+
+	useEffect(() => {
+		if (error) {
+			console.error("Chat error:", error);
+			setInput("");
+		}
+	}, [error]);
 
 	const submitMessage = async () => {
 		const prompt = input.trim();
 
-		if (!prompt || isLoading) {
+		if (!prompt || !isReady) {
 			return;
 		}
 
-		const userMessage: ChatMessage = {
-			id: crypto.randomUUID(),
-			type: "user",
-			content: prompt,
-			timestamp: new Date(),
-		};
-
-		setMessages((prev) => [...prev, userMessage]);
+		sendMessage({ text: prompt, metadata: { createdAt: Date.now() } });
 		setInput("");
-		setIsLoading(true);
-
-		try {
-			const response = await fetch("/api/chat", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					message: prompt,
-					limit: 5,
-					threshold: 0.5,
-					model: defaultModel,
-				}),
-			});
-
-			if (!response.ok) {
-				const error = await response.json();
-				throw new Error(error.error || "Failed to process the question");
-			}
-
-			const data = await response.json();
-
-			const aiMessage: ChatMessage = {
-				id: crypto.randomUUID(),
-				type: "ai",
-				content: data.content,
-				timestamp: new Date(),
-				sources: data.sources,
-				isStreaming: false,
-			};
-			setMessages((prev) => [...prev, aiMessage]);
-		} catch (error) {
-			console.error("Chat error:", error);
-
-			const errorMessage: ChatMessage = {
-				id: crypto.randomUUID(),
-				type: "ai",
-				content: `I apologize, but I encountered an error while processing your question: ${
-					error instanceof Error ? error.message : "Unknown error"
-				}. Please try again.`,
-				timestamp: new Date(),
-				sources: [],
-				isStreaming: false,
-			};
-			setMessages((prev) => [...prev, errorMessage]);
-		} finally {
-			setIsLoading(false);
-		}
 	};
 
 	const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
@@ -103,7 +110,12 @@ export function Chat() {
 	};
 
 	const handleKeyDown = async (e: React.KeyboardEvent) => {
-		if (e.key === "Enter" && !e.shiftKey) {
+		if (
+			e.key === "Enter" &&
+			!e.shiftKey &&
+			// fix accessibility/i18n bug for CJK users
+			!e.nativeEvent.isComposing
+		) {
 			e.preventDefault();
 			await submitMessage();
 		}
@@ -111,7 +123,7 @@ export function Chat() {
 
 	const clearChat = () => {
 		setMessages([]);
-		setIsLoading(false);
+		setInput("");
 	};
 
 	const toggleContextPanel = () => {
@@ -133,7 +145,7 @@ export function Chat() {
 			>
 				{/* Header */}
 				<ChatHeader
-					hasMessages={messages.length > 0}
+					hasMessages={chatMessages.length > 0}
 					clearChat={clearChat}
 					isContextPanelOpen={isContextPanelOpen}
 					toggleContextPanel={toggleContextPanel}
@@ -142,15 +154,14 @@ export function Chat() {
 
 				{/* Messages Area */}
 				<div className="flex-1 overflow-y-auto p-4 space-y-4">
-					{messages.length === 0 ? (
+					{chatMessages.length === 0 ? (
 						<div className="flex items-center justify-center h-full text-center">
 							<div className="max-w-md">
 								<h2 className="text-2xl font-semibold mb-4 text-gray-200">
 									Welcome to MDN Developer Chat
 								</h2>
 								<p className="text-gray-400 mb-6">
-									Ask me anything about web development, JavaScript, CSS, HTML,
-									or any other topics covered in MDN documentation.
+									Ask me anything about web development, JavaScript on MDN.
 								</p>
 								<div className="grid grid-cols-1 gap-2 text-sm">
 									{initialPrompts.map((prompt) => (
@@ -166,30 +177,29 @@ export function Chat() {
 							</div>
 						</div>
 					) : (
-						messages.map((message) => (
+						chatMessages.map((message) => (
 							<ChatMessageComponent key={message.id} message={message} />
 						))
 					)}
+					<div
+						className={clsx(
+							"transition-opacity duration-200",
+							isLoading ? "opacity-100" : "opacity-0 h-0 overflow-hidden",
+						)}
+					>
+						<ChatMessageLoading />
+					</div>
 
-					{isLoading && (
-						<div
-							className="flex justify-start"
-							role="status"
-							aria-live="polite"
-						>
-							<div className="bg-gray-800 rounded-lg p-4 max-w-4xl">
-								<div className="flex items-center gap-2 text-gray-400">
-									<div className="flex gap-1">
-										<div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-										<div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse [animation-delay:0.2s]"></div>
-										<div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse [animation-delay:0.4s]"></div>
-									</div>
-									<span className="text-sm">AI is thinking...</span>
-								</div>
-							</div>
+					{isError && error && (
+						<div className="bg-red-900/30 border border-red-800 rounded-lg p-4 my-2">
+							<h4 className="text-red-400 font-semibold text-sm">
+								{getErrorDisplay(error)?.title}
+							</h4>
+							<p className="text-red-300 text-sm mt-1">
+								{getErrorDisplay(error)?.description}
+							</p>
 						</div>
 					)}
-
 					<div ref={messagesEndRef} />
 				</div>
 
@@ -198,19 +208,19 @@ export function Chat() {
 					<form onSubmit={handleSubmit} className="flex gap-3">
 						<div className="flex-1 relative">
 							<textarea
-								aria-label="Ask me about web development, JavaScript, CSS, HTML..."
+								aria-label="Ask me anything about MDN JavaScript ..."
 								value={input}
 								onChange={(e) => setInput(e.target.value)}
 								onKeyDown={handleKeyDown}
-								placeholder="Ask me about web development, JavaScript, CSS, HTML..."
+								placeholder="Ask me anything about MDN JavaScript ..."
 								className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 pr-12 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none min-h-12.5 max-h-32"
 								rows={1}
-								disabled={isLoading}
+								disabled={!isReady}
 							/>
 							<button
 								type="submit"
-								disabled={!input.trim() || isLoading}
-								className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
+								disabled={!input.trim() || !isReady}
+								className="absolute right-2 top-6.25 -translate-y-1/2 p-2 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
 								aria-label="Send message"
 							>
 								<Send className="w-4 h-4 text-white" />
@@ -226,7 +236,7 @@ export function Chat() {
 
 			{isContextPanelOpen && (
 				<ContextPanel
-					sources={messages
+					sources={chatMessages
 						.filter((m) => m.type === "ai" && m.sources)
 						.flatMap((m) => m.sources || [])}
 				/>
@@ -234,7 +244,7 @@ export function Chat() {
 
 			{isExportDialogOpen && (
 				<ExportDialog
-					messages={messages}
+					messages={chatMessages}
 					onClose={() => setIsExportDialogOpen(false)}
 				/>
 			)}

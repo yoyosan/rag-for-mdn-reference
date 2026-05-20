@@ -2,8 +2,8 @@
 
 import { clsx } from "clsx";
 import { Check, Copy, Download, FileText, Hash, X } from "lucide-react";
-import { useState } from "react";
-import { ChatMessage } from "@/components/chat/Message.types";
+import { useEffect, useRef, useState } from "react";
+import { ChatMessage } from "@/types/web/message";
 
 interface ExportDialogProps {
 	messages: ChatMessage[];
@@ -15,6 +15,7 @@ type ExportFormat = "markdown" | "plaintext";
 export function ExportDialog({ messages, onClose }: ExportDialogProps) {
 	const [format, setFormat] = useState<ExportFormat>("markdown");
 	const [copied, setCopied] = useState(false);
+	const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const formatMessages = (format: ExportFormat): string => {
 		const timestamp = new Date().toISOString().split("T")[0];
@@ -26,7 +27,7 @@ export function ExportDialog({ messages, onClose }: ExportDialogProps) {
 
 			messages.forEach((message, index) => {
 				const role = message.type === "user" ? "User" : "AI Assistant";
-				const time = message.timestamp.toLocaleTimeString();
+				const time = message.timestamp?.toLocaleTimeString();
 
 				content += `## ${role} (${time})\n\n`;
 				content += `${message.content}\n\n`;
@@ -52,7 +53,7 @@ export function ExportDialog({ messages, onClose }: ExportDialogProps) {
 
 			messages.forEach((message, index) => {
 				const role = message.type === "user" ? "User" : "AI Assistant";
-				const time = message.timestamp.toLocaleTimeString();
+				const time = message.timestamp?.toLocaleTimeString();
 
 				content += `${role} (${time})\n`;
 				content += `${"-".repeat(20)}\n`;
@@ -76,11 +77,19 @@ export function ExportDialog({ messages, onClose }: ExportDialogProps) {
 		}
 	};
 
+	useEffect(() => {
+		return () => {
+			if (copyTimeoutRef.current) {
+				clearTimeout(copyTimeoutRef.current);
+			}
+		};
+	}, []);
+
 	const handleCopy = async () => {
 		const content = formatMessages(format);
 		await navigator.clipboard.writeText(content);
 		setCopied(true);
-		setTimeout(() => setCopied(false), 2000);
+		copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
 	};
 
 	const handleDownload = () => {

@@ -188,3 +188,19 @@ For detailed usage, options, and prerequisites for each script, see [`scripts/RE
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Drizzle ORM Documentation](https://orm.drizzle.team/docs)
 - [pgvector Documentation](https://github.com/pgvector/pgvector)
+
+## Known Issues
+
+- **`voyageai` ESM build**: The `voyageai` npm package has a known ESM import bug ([upstream issue](https://github.com/voyage-ai/typescript-sdk/issues/26)). The project uses `serverExternalPackages` in `next.config.ts` as a workaround.
+- **Dependency advisories**: See [SECURITY.md](./SECURITY.md) for current dependency vulnerability status.
+
+## Rate Limits
+
+This project uses free-tier APIs with rate limits:
+
+| Service | Limit | Reset |
+|---------|-------|-------|
+| **Groq** (`llama-3.3-70b-versatile`) | 100,000 tokens/day | Daily |
+| **Voyage AI** | Check your plan | Varies |
+
+If you hit Groq's rate limit, the error message will show how long to wait. Consider upgrading to a paid tier for production use.

@@ -11,6 +11,7 @@ import {
 	loadFilePayload,
 	normalizeText,
 } from "@/lib/server/chunking";
+import { runScript } from "./utils";
 
 const projectRoot = path.resolve(import.meta.dir, "..");
 const docsRoot = path.resolve(projectRoot, "mdn-js-docs");
@@ -95,9 +96,6 @@ async function main(): Promise<void> {
 	);
 }
 
-try {
-	await main();
-} catch (error) {
-	console.error("Failed to chunk markdown docs:", error);
-	process.exitCode = 1;
+if (import.meta.main) {
+	await runScript(main);
 }

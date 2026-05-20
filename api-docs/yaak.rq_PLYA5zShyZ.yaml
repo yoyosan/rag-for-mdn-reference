@@ -1,0 +1,38 @@
+type: http_request
+model: http_request
+id: rq_PLYA5zShyZ
+createdAt: 2026-05-19T15:27:54.561063
+updatedAt: 2026-05-19T15:33:03.206601
+workspaceId: wk_GTmC5fanFC
+folderId: null
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is a closure in JavaScript?",
+          "id": "msg-1",
+          "parts": [
+            {
+              "type": "text",
+              "text": "What is a closure in JavaScript?"
+            }
+          ]
+        }
+      ]
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: 0IK5MU7zQA
+method: POST
+name: Api Chat
+sortPriority: -1779204474559.0
+url: http://localhost:3000/api/chat
+urlParameters: []

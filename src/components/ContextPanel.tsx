@@ -1,7 +1,7 @@
 "use client";
 
 import { BookOpen, Clock, ExternalLink } from "lucide-react";
-import { ChatSource } from "@/components/chat/Message.types";
+import { ChatSource } from "@/types/web/message";
 
 interface ContextPanelProps {
 	sources: ChatSource[];

@@ -4,10 +4,9 @@ import { ExternalLink } from "lucide-react";
 import type { ComponentPropsWithoutRef } from "react";
 import React from "react";
 import type { Components, ExtraProps } from "react-markdown";
-import type { ChatMessage } from "@/components/chat/Message.types";
 import { CodeBlock } from "@/components/chat/markdown/CodeBlock";
 import { processCitations } from "@/components/chat/markdown/processCitations";
-import { StreamingText } from "@/components/chat/markdown/StreamingText";
+import type { ChatMessage } from "@/types/web/message";
 
 type CodeProps = ComponentPropsWithoutRef<"code"> & ExtraProps;
 
@@ -19,39 +18,17 @@ export function getMarkdownComponents(message: ChatMessage): Components {
 	return {
 		code({ className, children, ...props }: CodeProps) {
 			const content = String(children).replace(/\n$/, "");
-			const isBlock = /language-/.test(className || "");
+			const inline = !String(children).includes("\n");
 
-			if (message.isStreaming) {
-				return isBlock ? (
-					<div className="my-4">
-						<StreamingText content={content} isStreaming />
-					</div>
-				) : (
-					<StreamingText content={content} isStreaming />
-				);
-			}
-
-			return isBlock ? (
-				<CodeBlock className={className} {...props}>
+			return (
+				<CodeBlock inline={inline} className={className} {...props}>
 					{content}
 				</CodeBlock>
-			) : (
-				<code className={className} {...props}>
-					{children}
-				</code>
 			);
 		},
 
 		// Paragraphs – process citations when not streaming, otherwise show streaming text
 		p({ children }: { children?: React.ReactNode }) {
-			if (message.isStreaming) {
-				const rawContent =
-					typeof children === "string"
-						? children
-						: React.Children.toArray(children).join("");
-				return <StreamingText content={rawContent} isStreaming={true} />;
-			}
-
 			const processedChildren = React.Children.map(children, (child) => {
 				if (typeof child === "string") {
 					return processCitations(child, message.sources);

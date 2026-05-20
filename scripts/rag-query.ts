@@ -1,6 +1,7 @@
 import { pool } from "@/db";
 import { performRAGQuery, RAGResponse } from "@/lib/server/rag";
 import { defaultModel } from "@/lib/shared/constants";
+import { runScript } from "./utils";
 
 /**
  * Format and display the RAG response
@@ -115,12 +116,5 @@ async function main(): Promise<void> {
 
 // Run the script only if the file was ran from cli
 if (import.meta.main) {
-	try {
-		await main();
-	} catch (error) {
-		console.error("Script failed:", error);
-		process.exit(1);
-	} finally {
-		await pool.end();
-	}
+	await runScript(main);
 }

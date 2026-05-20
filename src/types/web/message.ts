@@ -9,7 +9,7 @@ export interface ChatMessage {
 	id: string;
 	type: "user" | "ai";
 	content: string;
-	timestamp: Date;
+	timestamp: Date | null;
 	sources?: ChatSource[];
 	isStreaming?: boolean;
 }

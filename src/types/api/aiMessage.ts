@@ -1,0 +1,13 @@
+import { InferUITools, UIDataTypes, UIMessage } from "ai";
+import z from "zod";
+import { aiTools } from "@/lib/helpers/aiTools";
+
+// Infer the types from the tool set
+type MyUITools = InferUITools<typeof aiTools>;
+
+export const messageMetadataSchema = z.object({
+	createdAt: z.number(),
+});
+export type MessageMetadata = z.output<typeof messageMetadataSchema>;
+
+export type AppUIMessage = UIMessage<MessageMetadata, UIDataTypes, MyUITools>;

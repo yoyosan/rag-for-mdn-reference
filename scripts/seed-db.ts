@@ -6,6 +6,7 @@ import { chunksTable } from "@/db/schema/chunks";
 import { documentsTable } from "@/db/schema/documents";
 import type { ChunkId, DocumentId } from "@/types/brands";
 import { InsertedDocument } from "@/types/entities/document";
+import { runScript } from "./utils";
 
 interface ChunkData {
 	id: string;
@@ -60,7 +61,7 @@ function groupChunksByDocument(chunks: ChunkData[]): DocumentGroups {
 	return groups;
 }
 
-async function seedDatabase(): Promise<void> {
+async function main(): Promise<void> {
 	console.log("Loading chunks...");
 	const chunks = await loadChunks();
 	console.log(`Loaded ${chunks.length} chunks`);
@@ -146,11 +147,6 @@ async function seedDatabase(): Promise<void> {
 	});
 }
 
-try {
-	await seedDatabase();
-} catch (error) {
-	console.error("Seed failed:", error);
-	process.exit(1);
-} finally {
-	await pool.end();
+if (import.meta.main) {
+	await runScript(main);
 }

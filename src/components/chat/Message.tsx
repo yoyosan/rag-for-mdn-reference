@@ -4,17 +4,19 @@ import { clsx } from "clsx";
 import { Bot, ExternalLink, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { type ChatMessage } from "@/components/chat/Message.types";
 import { getMarkdownComponents } from "@/components/chat/markdown/MarkdownComponents";
+import { type ChatMessage } from "@/types/web/message";
 
 interface ChatMessageProps {
 	message: ChatMessage;
 }
 
+const remarkPlugins = [remarkGfm];
+
 export function ChatMessage({ message }: ChatMessageProps) {
 	const isUser = message.type === "user";
 
-	return (
+	return message.content ? (
 		<div
 			className={clsx("flex gap-4", isUser ? "justify-end" : "justify-start")}
 		>
@@ -37,7 +39,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
 				) : (
 					<div className="prose prose-invert prose-purple max-w-none">
 						<ReactMarkdown
-							remarkPlugins={[remarkGfm]}
+							remarkPlugins={remarkPlugins}
 							components={getMarkdownComponents(message)}
 						>
 							{message.content}
@@ -46,48 +48,45 @@ export function ChatMessage({ message }: ChatMessageProps) {
 				)}
 
 				{/* Sources */}
-				{!isUser &&
-					message.sources &&
-					message.sources.length > 0 &&
-					!message.isStreaming && (
-						<div className="mt-4 pt-4 border-t border-gray-700">
-							<h4 className="text-sm font-semibold text-gray-300 mb-2">
-								Sources:
-							</h4>
-							<div className="grid gap-2">
-								{message.sources.map((source, index) => (
-									<a
-										key={source.id}
-										href={source.url}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="block p-2 bg-gray-900 rounded border border-gray-700 hover:border-purple-500 transition-colors group"
-									>
-										<div className="flex items-start justify-between gap-2">
-											<div className="flex-1 min-w-0">
-												<div className="flex items-center gap-2">
-													<span className="text-xs bg-purple-600 text-white px-1.5 py-0.5 rounded font-mono">
-														{index + 1}
-													</span>
-													<h5 className="font-medium text-sm text-white truncate group-hover:text-purple-300">
-														{source.title}
-													</h5>
-												</div>
-												<p className="text-xs text-gray-400 mt-1 line-clamp-2">
-													{source.snippet}
-												</p>
+				{!isUser && message.sources && message.sources.length > 0 && (
+					<div className="mt-4 pt-4 border-t border-gray-700">
+						<h4 className="text-sm font-semibold text-gray-300 mb-2">
+							Sources:
+						</h4>
+						<div className="grid gap-2">
+							{message.sources.map((source, index) => (
+								<a
+									key={source.id}
+									href={source.url}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="block p-2 bg-gray-900 rounded border border-gray-700 hover:border-purple-500 transition-colors group"
+								>
+									<div className="flex items-start justify-between gap-2">
+										<div className="flex-1 min-w-0">
+											<div className="flex items-center gap-2">
+												<span className="text-xs bg-purple-600 text-white px-1.5 py-0.5 rounded font-mono">
+													{index + 1}
+												</span>
+												<h5 className="font-medium text-sm text-white truncate group-hover:text-purple-300">
+													{source.title}
+												</h5>
 											</div>
-											<ExternalLink className="w-3 h-3 text-gray-500 group-hover:text-purple-400 shrink-0 mt-0.5" />
+											<p className="text-xs text-gray-400 mt-1 line-clamp-2">
+												{source.snippet}
+											</p>
 										</div>
-									</a>
-								))}
-							</div>
+										<ExternalLink className="w-3 h-3 text-gray-500 group-hover:text-purple-400 shrink-0 mt-0.5" />
+									</div>
+								</a>
+							))}
 						</div>
-					)}
+					</div>
+				)}
 
 				{/* Timestamp */}
-				<div className="mt-3 text-xs text-gray-500">
-					{message.timestamp.toLocaleTimeString()}
+				<div className="mt-3 text-xs opacity-70">
+					{message.timestamp?.toLocaleTimeString()}
 				</div>
 			</div>
 
@@ -97,5 +96,5 @@ export function ChatMessage({ message }: ChatMessageProps) {
 				</div>
 			)}
 		</div>
-	);
+	) : null;
 }

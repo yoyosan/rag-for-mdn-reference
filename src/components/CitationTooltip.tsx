@@ -4,7 +4,7 @@ import { clsx } from "clsx";
 import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChatSource } from "@/components/chat/Message.types";
+import { ChatSource } from "@/types/web/message";
 
 interface CitationTooltipProps {
 	source: ChatSource;

@@ -1,9 +1,22 @@
 import z from "zod";
-import { defaultModel } from "@/lib/shared/constants";
+import { AppUIMessage, messageMetadataSchema } from "@/types/api/aiMessage";
+
+const uiMessagePartSchema = z
+	.object({
+		type: z.string().min(1),
+	})
+	.loose();
+
+const uiMessageSchema = z.object({
+	id: z.string(),
+	role: z.enum(["system", "user", "assistant"]),
+	parts: z.array(uiMessagePartSchema),
+	metadata: messageMetadataSchema.optional(),
+});
 
 export const chatRequestSchema = z.object({
-	message: z.string().min(1),
-	limit: z.number().int().min(1).max(10).default(5),
-	threshold: z.number().min(0).max(1).default(0.5),
-	model: z.string().min(5).default(defaultModel),
+	messages: z
+		.array(uiMessageSchema)
+		.min(1)
+		.transform((s) => s as AppUIMessage[]),
 });

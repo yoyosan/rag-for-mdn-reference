@@ -6,6 +6,7 @@ import {
 	generateEmbeddings,
 	voyageClient,
 } from "@/lib/server/embeddings";
+import { runScript } from "./utils";
 
 const VOYAGE_MAX_BATCH_SIZE = 128;
 
@@ -19,7 +20,7 @@ async function fetchChunksWithoutEmbeddings(): Promise<ChunkRow[]> {
 		.where(isNull(chunksTable.embedding));
 }
 
-async function generateAllEmbeddings(): Promise<void> {
+async function main(): Promise<void> {
 	console.log("Fetching chunks without embeddings...");
 	const chunks = await fetchChunksWithoutEmbeddings();
 
@@ -55,11 +56,6 @@ async function generateAllEmbeddings(): Promise<void> {
 	console.log(`\nDone! Generated embeddings for ${processed} chunks.`);
 }
 
-try {
-	await generateAllEmbeddings();
-} catch (error) {
-	console.error("Embedding generation failed:", error);
-	process.exit(1);
-} finally {
-	await pool.end();
+if (import.meta.main) {
+	await runScript(main);
 }

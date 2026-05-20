@@ -1,5 +1,5 @@
 import { Check, Copy } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
@@ -12,11 +12,20 @@ interface CodeBlockProps {
 export function CodeBlock({ children, className, inline }: CodeBlockProps) {
 	const [copied, setCopied] = useState(false);
 	const language = className?.replace("language-", "") || "text";
+	const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	useEffect(() => {
+		return () => {
+			if (copyTimeoutRef.current) {
+				clearTimeout(copyTimeoutRef.current);
+			}
+		};
+	}, []);
 
 	const copyToClipboard = async () => {
 		await navigator.clipboard.writeText(children);
 		setCopied(true);
-		setTimeout(() => setCopied(false), 2000);
+		copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
 	};
 
 	if (inline) {

@@ -1,0 +1,15 @@
+type: workspace
+model: workspace
+id: wk_GTmC5fanFC
+createdAt: 2026-05-19T14:45:48.487851
+updatedAt: 2026-05-19T15:32:09.419797
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: RAG course
+encryptionKeyChallenge: null
+settingValidateCertificates: true
+settingFollowRedirects: true
+settingRequestTimeout: 0
+settingDnsOverrides: []

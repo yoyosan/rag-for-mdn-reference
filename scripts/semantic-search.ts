@@ -1,6 +1,7 @@
 import { pool } from "@/db";
 import { performSemanticSearch } from "@/lib/server/search";
 import { SearchResult } from "@/types/semanticSearch";
+import { runScript } from "./utils";
 
 if (!process.env.VOYAGE_API_KEY) {
 	throw new Error("VOYAGE_API_KEY is required in .env.local");
@@ -126,12 +127,5 @@ async function main(): Promise<void> {
 
 // Run the script only if the file was ran from cli
 if (import.meta.main) {
-	try {
-		await main();
-	} catch (error) {
-		console.error("Script failed:", error);
-		process.exit(1);
-	} finally {
-		await pool.end();
-	}
+	await runScript(main);
 }

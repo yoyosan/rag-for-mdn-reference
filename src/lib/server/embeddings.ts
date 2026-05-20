@@ -32,12 +32,16 @@ export async function generateEmbeddings(chunks: ChunkRow[]): Promise<void> {
 		throw new Error("Received embeddings with missing data");
 	}
 
-	for (const [i, chunk] of chunks.entries()) {
-		const embedding = response.data[i].embedding;
+	await db.transaction(async (tx) => {
+		for (const [i, chunk] of chunks.entries()) {
+			if (response.data && response.data[i]) {
+				const embedding = response.data[i].embedding;
 
-		await db
-			.update(chunksTable)
-			.set({ embedding })
-			.where(eq(chunksTable.id, chunk.id));
-	}
+				await tx
+					.update(chunksTable)
+					.set({ embedding })
+					.where(eq(chunksTable.id, chunk.id));
+			}
+		}
+	});
 }

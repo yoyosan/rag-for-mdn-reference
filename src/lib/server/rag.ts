@@ -40,18 +40,20 @@ function formatContextFromChunks(chunks: SearchResult[]): string {
 	return context;
 }
 
-/**
- * Create a prompt that combines the user's question with retrieved context
- */
-function createRAGPrompt(question: string, context: string): string {
-	return `You are a helpful AI assistant that answers questions based on the provided context documents. Please follow these guidelines:
+export const ragSystemPrompt = `You are a helpful AI assistant that answers questions based on the provided context documents. Please follow these guidelines:
 
 1. Answer the question using primarily the information from the provided context documents
 2. If the context doesn't contain enough information to fully answer the question, clearly state what information is missing
 3. Be specific and cite which documents you're referencing when possible
 4. If the context is contradictory or unclear, acknowledge this
 5. Keep your answer concise but comprehensive
-6. Use markdown formatting for better readability
+6. Use markdown formatting for better readability`;
+
+/**
+ * Create a prompt that combines the user's question with retrieved context
+ */
+function createRAGPrompt(question: string, context: string): string {
+	return `${ragSystemPrompt}
 
 Context Documents:
 ${context}

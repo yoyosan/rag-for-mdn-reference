@@ -1,55 +1,15 @@
+import { groq } from "@ai-sdk/groq";
+import { convertToModelMessages, stepCountIs, streamText } from "ai";
 import { NextRequest, NextResponse } from "next/server";
-import slug from "slug";
-import { performRAGQuery } from "@/lib/server/rag";
+import { aiTools } from "@/lib/helpers/aiTools";
+import { ragSystemPrompt } from "@/lib/server/rag";
+import { defaultModel } from "@/lib/shared/constants";
 import { chatRequestSchema } from "@/types/api/chat";
 
-function headingToSlug(headingText: string): string {
-	if (!headingText) {
-		return "";
-	}
-
-	return slug(headingText, {
-		replacement: "_",
-		remove: /[.]/g,
-		lower: true,
-	});
-}
-
-function generateMDNUrl(
-	slug: string | null,
-	headingContext: string | null = null,
-): string {
-	const baseUrl = slug
-		? `https://developer.mozilla.org/en-US/docs/${slug}`
-		: "https://developer.mozilla.org/en-US/docs/";
-
-	if (headingContext) {
-		return `${baseUrl}#${headingToSlug(headingContext)}`;
-	}
-
-	return baseUrl;
-}
+export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
 	try {
-		const body = await req.json();
-		const parseResult = chatRequestSchema.safeParse(body);
-
-		if (!parseResult.success) {
-			return NextResponse.json(
-				{
-					error: "Invalid request body",
-					details: parseResult.error.issues.map((issue) => ({
-						path: issue.path.join("."),
-						message: issue.message,
-					})),
-				},
-				{ status: 400 },
-			);
-		}
-
-		const { message, limit, threshold, model } = parseResult.data;
-
 		if (!process.env.VOYAGE_API_KEY || !process.env.GROQ_API_KEY) {
 			return NextResponse.json(
 				{ error: "Missing required API keys" },
@@ -57,28 +17,40 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		console.log(`🔍 RAG Query: "${message}"`);
+		const body = await req.json();
+		const parseResult = chatRequestSchema.safeParse(body);
 
-		const ragResponse = await performRAGQuery(message, {
-			limit,
-			similarityThreshold: threshold,
-			model,
+		if (!parseResult.success) {
+			return NextResponse.json(
+				{
+					error: "Invalid request body",
+					details: parseResult.error.issues,
+				},
+				{ status: 400 },
+			);
+		}
+
+		const { messages } = parseResult.data;
+		const result = streamText({
+			model: groq(defaultModel),
+			messages: await convertToModelMessages(messages),
+			stopWhen: stepCountIs(2),
+			system:
+				ragSystemPrompt +
+				`\n\n Context documents are accessible with the queryKnowledgeBase tool.`,
+			temperature: 0.1,
+			tools: aiTools,
 		});
 
-		const transformedSources = ragResponse.sources.map((source, index) => ({
-			id: String(index + 1),
-			title: source.documentTitle,
-			snippet: source.content.substring(0, 200) + "...",
-			url: generateMDNUrl(source.documentSlug, source.headingContext),
-			similarity: source.similarity,
-			sourceFilePath: source.sourceFilePath,
-			chunkId: source.chunkId,
-		}));
-
-		return NextResponse.json({
-			content: ragResponse.answer,
-			sources: transformedSources,
-			tokensUsed: ragResponse.tokensUsed,
+		return result.toUIMessageStreamResponse({
+			originalMessages: messages,
+			messageMetadata: ({ part }) => {
+				if (part.type === "start") {
+					return {
+						createdAt: Date.now(),
+					};
+				}
+			},
 		});
 	} catch (error) {
 		console.error("RAG API error: ", error);
