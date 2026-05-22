@@ -74,6 +74,38 @@ esbuild is only used as a TypeScript transpiler when running `drizzle-kit` CLI c
 **Remediation path:**
 This will be resolved when `drizzle-kit` or `tsx` updates its esbuild dependency. No direct action required.
 
+### protobufjs — GHSA-66ff-xgx4-vchm (and related CVEs)
+
+**Status:** Mitigated (override applied)  
+**Severity:** High  
+**Affected package:** `protobufjs < 7.5.0` (via `promptfoo` → `@huggingface/transformers` → `onnxruntime-web`)  
+**Current version in lockfile:** `7.5.0` (forced by override)
+
+**Details:**
+`promptfoo` (the evaluation framework) transitively depends on `@huggingface/transformers` → `onnxruntime-web` → `protobufjs`. Multiple CVEs affect `protobufjs` versions below 7.5.0, including code injection, denial of service, and prototype pollution.
+
+**Why this is accepted:**
+`promptfoo` is a **development-only** dependency used for automated RAG evaluation. It is not included in the production build or runtime. The vulnerability only exists in the local development environment when running evaluations.
+
+**Remediation path:**
+`package.json` includes an override forcing `protobufjs >= 7.5.0`:
+
+```json
+"overrides": {
+  "protobufjs": ">=7.5.0"
+}
+```
+
+Run `bun install` to apply. Verify with:
+
+```bash
+grep 'protobufjs@' bun.lock
+```
+
+Expected output should show `protobufjs@7.5.x` or higher.
+
+**Note:** If `bun-scan` still flags `protobufjs` after the override, you may need to run `bun install --no-verify` or wait for `promptfoo` to update its transitive dependencies.
+
 ## Reporting a Vulnerability
 
 If you discover a security issue in this project, please open a GitHub issue with the prefix `[SECURITY]`. For sensitive disclosures, email the maintainer directly.

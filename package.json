@@ -16,7 +16,9 @@
 		"db:seed": "bun --env-file=.env.local scripts/seed-db.ts",
 		"db:embeddings": "bun --env-file=.env.local scripts/generate-embeddings.ts",
 		"semantic-search": "bun --env-file=.env.local scripts/semantic-search.ts",
-		"rag-query": "bun --env-file=.env.local scripts/rag-query.ts"
+		"rag-query": "bun --env-file=.env.local scripts/rag-query.ts",
+		"eval": "export $(grep -v '^#' .env.local | xargs) && cd evaluation/01-retrieval-eval-deterministic && npx promptfoo eval",
+		"eval:view": "cd evaluation/01-retrieval-eval-deterministic && npx promptfoo view"
 	},
 	"packageManager": "bun@1.3.13",
 	"dependencies": {
@@ -54,6 +56,7 @@
 		"babel-plugin-react-compiler": "1.0.0",
 		"bun-scan": "1.1.2",
 		"drizzle-kit": "0.31.10",
+		"promptfoo": "0.121.11",
 		"tailwindcss": "4.2.4",
 		"typescript": "5.9.3"
 	},
@@ -62,6 +65,7 @@
 		"unrs-resolver"
 	],
 	"overrides": {
-		"langsmith": ">=0.6.0"
+		"langsmith": ">=0.6.0",
+		"protobufjs": ">=7.5.0"
 	}
 }

@@ -91,7 +91,23 @@ bun db:embeddings
 
 This sends chunks to Voyage AI in batches of 128 and stores the resulting 1024-dimensional vectors in the `chunks.embedding` column. The script only processes chunks that don't already have embeddings, so it's safe to re-run.
 
-### 8. Query with RAG
+### 8. Evaluate RAG Retrieval
+
+Run automated evaluation of the retrieval system:
+
+```bash
+npm run eval
+```
+
+View detailed results:
+
+```bash
+npm run eval:view
+```
+
+See [`evaluation/README.md`](./evaluation/README.md) for setup details.
+
+### 9. Query with RAG
 
 ```bash
 bun rag-query "What is a closure in JavaScript?"
@@ -168,6 +184,8 @@ bun db:seed       # Seed database with chunk data
 bun db:embeddings # Generate Voyage AI embeddings for chunks
 bun semantic-search "your question"  # Search chunks by semantic similarity
 bun rag-query "your question"        # RAG query with LLM response
+npm run eval                         # Run Promptfoo evaluations
+npm run eval:view                    # View evaluation results in browser
 ```
 
 For detailed usage, options, and prerequisites for each script, see [`scripts/README.md`](./scripts/README.md).

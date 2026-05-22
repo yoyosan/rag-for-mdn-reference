@@ -1,0 +1,16 @@
+yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: "Evaluation of the retrieval system"
+prompts:
+  - "{{ query }}"
+
+providers:
+  - file://retrieval-provider.ts
+
+tests:
+  - vars:
+      query: What's the example used in the MDN docs to demonstrate how to declare a variable?
+    assert:
+      - type: contains-all
+        value:
+          - Web/JavaScript/Guide/Grammar_and_types-10
+          - Web/JavaScript/Guide/Language_overview-16

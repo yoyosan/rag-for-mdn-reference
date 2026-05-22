@@ -1,4 +1,4 @@
-import { Branded } from "@/lib/branded";
+import { Branded } from "@/types/branded";
 
 export type ChunkId = Branded<string, "ChunkId">;
 export type ConversationId = Branded<string, "ConversationId">;
