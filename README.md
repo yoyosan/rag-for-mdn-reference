@@ -91,18 +91,22 @@ bun db:embeddings
 
 This sends chunks to Voyage AI in batches of 128 and stores the resulting 1024-dimensional vectors in the `chunks.embedding` column. The script only processes chunks that don't already have embeddings, so it's safe to re-run.
 
-### 8. Evaluate RAG Retrieval
+### 8. Evaluate RAG Pipeline
 
-Run automated evaluation of the retrieval system:
+Run automated evaluations of the RAG system:
 
 ```bash
-npm run eval
+npm run eval        # Run all evaluations
+npm run eval:01     # Retrieval accuracy only
+npm run eval:02     # Context adherence only
 ```
 
 View detailed results:
 
 ```bash
-npm run eval:view
+npm run eval:view      # View all results
+npm run eval:view:01   # View retrieval results
+npm run eval:view:02   # View context adherence results
 ```
 
 See [`evaluation/README.md`](./evaluation/README.md) for setup details.
@@ -119,7 +123,7 @@ This performs semantic search and queries the Groq LLM with retrieved context. S
 bun rag-query "your question" --limit=10 --threshold=0.6
 ```
 
-### 9. Start the development server
+### 10. Start the development server
 
 ```bash
 bun dev
@@ -184,8 +188,12 @@ bun db:seed       # Seed database with chunk data
 bun db:embeddings # Generate Voyage AI embeddings for chunks
 bun semantic-search "your question"  # Search chunks by semantic similarity
 bun rag-query "your question"        # RAG query with LLM response
-npm run eval                         # Run Promptfoo evaluations
-npm run eval:view                    # View evaluation results in browser
+npm run eval                         # Run all Promptfoo evaluations
+npm run eval:01                      # Run retrieval evaluation only
+npm run eval:02                      # Run context adherence evaluation only
+npm run eval:view                    # View all evaluation results
+npm run eval:view:01                 # View retrieval results
+npm run eval:view:02                 # View context adherence results
 ```
 
 For detailed usage, options, and prerequisites for each script, see [`scripts/README.md`](./scripts/README.md).

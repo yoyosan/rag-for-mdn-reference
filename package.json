@@ -17,8 +17,12 @@
 		"db:embeddings": "bun --env-file=.env.local scripts/generate-embeddings.ts",
 		"semantic-search": "bun --env-file=.env.local scripts/semantic-search.ts",
 		"rag-query": "bun --env-file=.env.local scripts/rag-query.ts",
-		"eval": "export $(grep -v '^#' .env.local | xargs) && cd evaluation/01-retrieval-eval-deterministic && npx promptfoo eval",
-		"eval:view": "cd evaluation/01-retrieval-eval-deterministic && npx promptfoo view"
+		"eval": "npm run eval:01 && npm run eval:02",
+		"eval:01": "export $(grep -v '^#' .env.local | xargs) && cd evaluation/01-retrieval-eval-deterministic && npx promptfoo eval",
+		"eval:02": "export $(grep -v '^#' .env.local | xargs) && cd evaluation/02-context-adherence && npx promptfoo eval",
+		"eval:view": "npm run eval:view:01 && npm run eval:view:02",
+		"eval:view:01": "cd evaluation/01-retrieval-eval-deterministic && npx promptfoo view",
+		"eval:view:02": "cd evaluation/02-context-adherence && npx promptfoo view"
 	},
 	"packageManager": "bun@1.3.13",
 	"dependencies": {

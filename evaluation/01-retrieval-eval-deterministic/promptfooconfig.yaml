@@ -4,7 +4,7 @@ prompts:
   - "{{ query }}"
 
 providers:
-  - file://retrieval-provider.ts
+  - file://provider.ts
 
 tests:
   - vars:
