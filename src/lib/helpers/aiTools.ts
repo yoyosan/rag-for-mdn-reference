@@ -35,7 +35,7 @@ export const aiTools = {
 	},
 };
 
-function transformChunksForFrontend(chunks: SearchResult[]) {
+export function transformChunksForFrontend(chunks: SearchResult[]) {
 	return chunks.map((source, index) => ({
 		id: String(index + 1),
 		citationNumber: index + 1,
@@ -45,5 +45,6 @@ function transformChunksForFrontend(chunks: SearchResult[]) {
 		similarity: source.similarity,
 		sourceFilePath: source.sourceFilePath,
 		chunkId: source.chunkId,
+		content: source.content,
 	}));
 }

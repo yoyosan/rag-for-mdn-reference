@@ -1,4 +1,3 @@
-import { pool } from "@/db";
 import { performRAGQuery, RAGResponse } from "@/lib/server/rag";
 import { defaultModel } from "@/lib/shared/constants";
 import { runScript } from "./utils";

@@ -1,5 +1,6 @@
 import { groq } from "@ai-sdk/groq";
 import { generateText } from "ai";
+import { transformChunksForFrontend } from "@/lib/helpers/aiTools";
 import { performSemanticSearch } from "@/lib/server/search";
 import { defaultModel } from "@/lib/shared/constants";
 import { SearchResult } from "@/types/semanticSearch";
@@ -21,21 +22,11 @@ function formatContextFromChunks(chunks: SearchResult[]): string {
 		return "No relevant context found.";
 	}
 
-	let context =
-		"Here are the relevant documents to help answer the question:\n\n";
-
-	chunks.forEach((chunk, index) => {
-		context += `<document index="${index + 1}">\n`;
-		context += `  <title>${chunk.documentTitle}</title>\n`;
-		if (chunk.headingContext) {
-			context += `  <section>${chunk.headingContext}</section>\n`;
-		}
-		context += `  <similarity>${(chunk.similarity * 100).toFixed(
-			1,
-		)}%</similarity>\n`;
-		context += `  <content><![CDATA[${chunk.content}]]></content>\n`;
-		context += `</document>\n\n`;
-	});
+	const context = `Here are the relevant documents to help answer the question:\n\n
+    <context>
+    ${JSON.stringify(transformChunksForFrontend(chunks))}
+    </context>
+	`;
 
 	return context;
 }

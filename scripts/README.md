@@ -130,7 +130,7 @@ bun rag-query "your question" --limit=5 --threshold=0.5
 **What it does:**
 
 1. Retrieves relevant chunks via semantic search
-2. Formats chunks as XML context documents
+2. Formats chunks as structured context (JSON with metadata, content, and source URLs)
 3. Sends augmented prompt to Groq LLM (`llama-3.3-70b-versatile`)
 4. Displays the AI answer with cited sources and token usage
 
