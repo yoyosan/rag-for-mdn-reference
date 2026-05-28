@@ -1,4 +1,5 @@
 import {
+	customType,
 	index,
 	integer,
 	pgTable,
@@ -9,6 +10,12 @@ import {
 } from "drizzle-orm/pg-core";
 import { documentsTable } from "@/db/schema/documents";
 import { ChunkId, DocumentId } from "@/types/brands";
+
+const tsvector = customType<{ data: string }>({
+	dataType() {
+		return "tsvector";
+	},
+});
 
 export const chunksTable = pgTable(
 	"chunks",
@@ -28,6 +35,7 @@ export const chunksTable = pgTable(
 		characterCount: integer("character_count").notNull(),
 		wordCount: integer("word_count").notNull(),
 		embedding: vector("embedding", { dimensions: 1024 }),
+		searchVector: tsvector("search_vector"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
 			.defaultNow()

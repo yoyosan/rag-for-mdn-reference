@@ -1,6 +1,6 @@
+import { runScript } from "@/lib/scripts/utils";
 import { performRAGQuery, RAGResponse } from "@/lib/server/rag";
 import { defaultModel } from "@/lib/shared/constants";
-import { runScript } from "./utils";
 
 /**
  * Format and display the RAG response

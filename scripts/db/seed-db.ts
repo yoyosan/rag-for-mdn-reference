@@ -6,7 +6,7 @@ import { chunksTable } from "@/db/schema/chunks";
 import { documentsTable } from "@/db/schema/documents";
 import type { ChunkId, DocumentId } from "@/types/brands";
 import { InsertedDocument } from "@/types/entities/document";
-import { runScript } from "./utils";
+import { runScript } from "../../src/lib/scripts/utils";
 
 interface ChunkData {
 	id: string;
@@ -106,6 +106,9 @@ async function main(): Promise<void> {
 
 		const documentIdBySlug = new Map<string, DocumentId>();
 		for (const doc of documentInsertions) {
+			if (!doc.slug) {
+				throw new Error("Document slug is required");
+			}
 			documentIdBySlug.set(doc.slug, doc.id);
 		}
 

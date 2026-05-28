@@ -4,7 +4,7 @@ import { DocumentId } from "@/types/brands";
 export const documentsTable = pgTable("documents", {
 	id: uuid("id").$type<DocumentId>().defaultRandom().primaryKey(),
 	title: text("title").notNull(),
-	slug: text("slug").notNull(),
+	slug: text("slug"),
 	sourceFilePath: text("source_file_path").notNull(),
 	pageType: text("page_type"),
 	sidebar: text("sidebar"),

@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { MarkdownTextSplitter } from "@langchain/textsplitters";
+import { runScript } from "@/lib/scripts/utils";
 import {
 	ChunkOutput,
 	collectMarkdownFiles,
@@ -11,7 +12,6 @@ import {
 	loadFilePayload,
 	normalizeText,
 } from "@/lib/server/chunking";
-import { runScript } from "./utils";
 
 const projectRoot = path.resolve(import.meta.dir, "..");
 const docsRoot = path.resolve(projectRoot, "mdn-js-docs");

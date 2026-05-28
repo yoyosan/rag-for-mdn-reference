@@ -1,12 +1,12 @@
 import { isNull } from "drizzle-orm";
 import { db, pool } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
+import { runScript } from "@/lib/scripts/utils";
 import {
 	ChunkRow,
 	generateEmbeddings,
 	voyageClient,
 } from "@/lib/server/embeddings";
-import { runScript } from "./utils";
 
 const VOYAGE_MAX_BATCH_SIZE = 128;
 

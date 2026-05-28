@@ -1,7 +1,6 @@
-import { pool } from "@/db";
+import { runScript } from "@/lib/scripts/utils";
 import { performSemanticSearch } from "@/lib/server/search";
 import { SearchResult } from "@/types/semanticSearch";
-import { runScript } from "./utils";
 
 if (!process.env.VOYAGE_API_KEY) {
 	throw new Error("VOYAGE_API_KEY is required in .env.local");

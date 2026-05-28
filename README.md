@@ -160,9 +160,18 @@ bun db:migrate
 
 # Seed the database with chunk data
 bun db:seed
+
+# Debug migration failures
+bun db:debug-migrations
+
+# Sync migration journal after manual fixes
+bun db:sync-migrations
+
+# Rollback the last migration
+bun db:rollback
 ```
 
-Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
+Database scripts live in `scripts/db/`. Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
 
 ## Development
 
@@ -170,7 +179,7 @@ Configuration is in [`drizzle.config.ts`](./drizzle.config.ts).
 - **Server logic** (`src/lib/server/`) — Pure functions for embedding generation, semantic search, and RAG. Used by both CLI scripts and the Next.js API route.
 - **Shared constants** (`src/lib/shared/`) — Configuration like default LLM model, shared between server and client.
 - **API route** (`src/app/api/chat/`) — Next.js route handler that validates requests and orchestrates the RAG pipeline.
-- **CLI scripts** (`scripts/`) — Thin wrappers around `src/lib/server/` functions for command-line usage.
+- **CLI scripts** (`scripts/`, `scripts/db/`) — Thin wrappers around `src/lib/server/` functions for command-line usage. General scripts in `scripts/`, database-specific scripts in `scripts/db/`.
 
 ### Available Scripts
 
@@ -182,10 +191,13 @@ bun lint         # Run Biome linter
 bun lint:fix     # Fix linting issues
 bun check-all    # Run type-check + lint
 bun chunk-docs   # Process and chunk documents
-bun db:generate   # Generate Drizzle migrations
-bun db:migrate    # Apply database migrations
-bun db:seed       # Seed database with chunk data
-bun db:embeddings # Generate Voyage AI embeddings for chunks
+bun db:generate         # Generate Drizzle migrations
+bun db:migrate          # Apply database migrations
+bun db:seed             # Seed database with chunk data
+bun db:embeddings       # Generate Voyage AI embeddings for chunks
+bun db:debug-migrations # Debug migration failures
+bun db:sync-migrations  # Sync migration journal
+bun db:rollback         # Rollback last migration
 bun semantic-search "your question"  # Search chunks by semantic similarity
 bun rag-query "your question"        # RAG query with LLM response
 npm run eval                         # Run all Promptfoo evaluations
