@@ -137,7 +137,7 @@ This project uses [Drizzle ORM](https://orm.drizzle.team) with PostgreSQL.
 
 ### Schema
 
-The database uses **branded types** for type-safe IDs. Each table uses UUID primary keys with semantic brand tags to prevent mixing up different ID types at compile time.
+The database uses **branded types** for type-safe IDs. Primary keys use either UUID or text with semantic brand tags to prevent mixing up different ID types at compile time.
 
 #### Tables
 
@@ -217,7 +217,7 @@ For detailed usage, options, and prerequisites for each script, see [`scripts/RE
 - **Database**: PostgreSQL + [Drizzle ORM](https://orm.drizzle.team)
 - **Vector Search**: [pgvector](https://github.com/pgvector/pgvector)
 - **Embeddings**: [Voyage AI](https://www.voyageai.com)
-- **AI/LLM**: [LangChain](https://js.langchain.com)
+- **AI/LLM**: [Vercel AI SDK](https://sdk.vercel.ai) + [Groq](https://groq.com)
 - **Runtime**: [Bun](https://bun.sh)
 - **Linting**: [Biome](https://biomejs.dev)
 

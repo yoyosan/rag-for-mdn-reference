@@ -41,7 +41,6 @@ async function main(): Promise<void> {
 
 	let question: string;
 	let limit: number = 5;
-	let similarityThreshold: number = 0.5;
 
 	// Parse command line arguments
 	if (args.length === 0) {
@@ -64,7 +63,6 @@ async function main(): Promise<void> {
 
 		// Parse optional parameters
 		const limitArg = args.find((arg) => arg.startsWith("--limit="));
-		const thresholdArg = args.find((arg) => arg.startsWith("--threshold="));
 
 		if (limitArg) {
 			const parsed = parseInt(limitArg.split("=")[1], 10);
@@ -74,40 +72,23 @@ async function main(): Promise<void> {
 				console.warn(`⚠️  Invalid --limit value, using default: ${limit}`);
 			}
 		}
-
-		if (thresholdArg) {
-			const parsed = parseFloat(thresholdArg.split("=")[1]);
-			if (!isNaN(parsed) && parsed >= 0 && parsed <= 1) {
-				similarityThreshold = parsed;
-			} else {
-				console.warn(
-					`⚠️  Invalid --threshold value (must be 0-1), using default: ${similarityThreshold}`,
-				);
-			}
-		}
 	}
 
 	if (!question) {
 		console.error("❌ No question provided");
 		console.log("Usage:");
 		console.log('  bun rag-query "your question here"');
-		console.log('  bun rag-query "your question" --limit=10 --threshold=0.6');
+		console.log('  bun rag-query "your question" --limit=10');
 		console.log("  bun rag-query  (for interactive mode)");
 		process.exit(1);
 	}
 
 	console.log("🚀 Starting RAG query...\n");
 	console.log(`📝 Question: "${question}"`);
-	console.log(
-		`🔍 Retrieving up to ${limit} relevant chunks (threshold: ${(
-			similarityThreshold * 100
-		).toFixed(0)}%)`,
-	);
 	console.log(`🤖 Using model: ${defaultModel}\n`);
 
 	const response = await performRAGQuery(question, {
 		limit,
-		similarityThreshold,
 	});
 
 	displayRAGResponse(response, question);

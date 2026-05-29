@@ -25,7 +25,15 @@ function displayResults(results: SearchResult[], question: string): void {
 		console.log(`   📋 Document: ${result.documentTitle}`);
 		console.log(`   📁 Source: ${result.sourceFilePath}`);
 		console.log(`   🔗 Slug: ${result.documentSlug || "N/A"}`);
-		console.log(`   🎯 Similarity: ${(result.similarity * 100).toFixed(2)}%`);
+		console.log(`   🎯 RRF Score: ${result.similarity.toFixed(6)}`);
+		if (result.vectorScore !== undefined) {
+			console.log(
+				`   🔢 Vector Score: ${(result.vectorScore * 100).toFixed(2)}%`,
+			);
+		}
+		if (result.bm25Score !== undefined) {
+			console.log(`   🔤 BM25 Score: ${(result.bm25Score * 100).toFixed(2)}%`);
+		}
 		console.log(
 			`   📏 Length: ${result.characterCount} chars, ${result.wordCount} words`,
 		);
@@ -55,7 +63,6 @@ async function main(): Promise<void> {
 
 	let question: string;
 	let limit: number = 5;
-	let similarityThreshold: number = 0.5;
 
 	if (args.length === 0) {
 		// Interactive mode - prompt for question
@@ -77,7 +84,6 @@ async function main(): Promise<void> {
 
 		// Parse optional parameters
 		const limitArg = args.find((arg) => arg.startsWith("--limit="));
-		const thresholdArg = args.find((arg) => arg.startsWith("--threshold="));
 
 		if (limitArg) {
 			const parsed = parseInt(limitArg.split("=")[1], 10);
@@ -85,17 +91,6 @@ async function main(): Promise<void> {
 				limit = parsed;
 			} else {
 				console.warn(`⚠️  Invalid --limit value, using default: ${limit}`);
-			}
-		}
-
-		if (thresholdArg) {
-			const parsed = parseFloat(thresholdArg.split("=")[1]);
-			if (!isNaN(parsed) && parsed >= 0 && parsed <= 1) {
-				similarityThreshold = parsed;
-			} else {
-				console.warn(
-					`⚠️  Invalid --threshold value (must be 0-1), using default: ${similarityThreshold}`,
-				);
 			}
 		}
 	}
@@ -113,13 +108,10 @@ async function main(): Promise<void> {
 
 	console.log(`Question: "${question}"`);
 	console.log(`Limit: ${limit} results`);
-	console.log(
-		`Similarity threshold: ${(similarityThreshold * 100).toFixed(0)}%\n`,
-	);
 
 	console.log("🚀 Starting semantic search...\n");
 
-	await performSemanticSearch(question, limit, similarityThreshold, (results) =>
+	await performSemanticSearch(question, limit, (results) =>
 		displayResults(results, question),
 	);
 }

@@ -79,21 +79,12 @@ export async function performRAGQuery(
 	question: string,
 	options: {
 		limit?: number;
-		similarityThreshold?: number;
 		model?: string;
 	} = {},
 ): Promise<RAGResponse> {
-	const {
-		limit = 5,
-		similarityThreshold = 0.5,
-		model = defaultModel,
-	} = options;
+	const { limit = 5, model = defaultModel } = options;
 
-	const retrievedChunks = await performSemanticSearch(
-		question,
-		limit,
-		similarityThreshold,
-	);
+	const retrievedChunks = await performSemanticSearch(question, limit);
 
 	if (retrievedChunks.length === 0) {
 		return {

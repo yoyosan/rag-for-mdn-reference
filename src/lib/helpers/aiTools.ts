@@ -13,22 +13,9 @@ export const aiTools = {
 					"The question or comment to query the context documents about.",
 				),
 			limit: z.number().optional().default(5),
-			similarityThreshold: z.number().optional().default(0.5),
 		}),
-		execute: async ({
-			message,
-			limit,
-			similarityThreshold,
-		}: {
-			message: string;
-			limit: number;
-			similarityThreshold: number;
-		}) => {
-			const retrievedChunks = await performSemanticSearch(
-				message,
-				limit,
-				similarityThreshold,
-			);
+		execute: async ({ message, limit }: { message: string; limit: number }) => {
+			const retrievedChunks = await performSemanticSearch(message, limit);
 
 			return transformChunksForFrontend(retrievedChunks);
 		},
