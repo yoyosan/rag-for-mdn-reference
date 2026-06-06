@@ -1,6 +1,7 @@
 # Unlearn Dev RAG Course
 
-A Next.js project demonstrating Retrieval-Augmented Generation (RAG) with vector search capabilities.
+A Next.js course project demonstrating hybrid RAG (vector search + BM25) with multiple AI/embedding providers, PostgreSQL + pgvector, and Promptfoo evaluations — using MDN JavaScript docs as the knowledge base.
+
 
 ## Prerequisites
 
@@ -66,6 +67,51 @@ EMBEDDING_MODEL=voyage-4-large
 |----------|-------|------------------|
 | **Voyage AI** (default) | `voyage-4-large` | Yes — [voyageai.com](https://www.voyageai.com) |
 | **Ollama** | Any local embedding model | No — runs locally |
+
+**Ollama Model Recommendations (≤32GB RAM):**
+
+**For RAG (answering queries):**
+
+| Model | Size | RAM | Quality | Notes |
+|-------|------|-----|---------|-------|
+| `qwen2.5:32b` | 32B | ~20GB | Best | Slowest, best reasoning |
+| `qwen2.5:14b` | 14B | ~10GB | Good | Default, good balance |
+| `llama3.1:8b` | 8B | ~5GB | Good | Alternative, strong instruction following |
+| `qwen2.5:7b` | 7B | ~5GB | Decent | Faster, good for testing |
+| `mistral:7b` | 7B | ~5GB | Decent | Fast alternative |
+
+**For seeding (generating context during db:seed):**
+
+| Model | Size | RAM | Speed | Notes |
+|-------|------|-----|-------|-------|
+| `qwen2.5:7b` | 7B | ~5GB | ~20 min | Minimum for quality context |
+| `qwen2.5:14b` | 14B | ~10GB | ~51 min | Default, best context quality |
+| `qwen2.5:32b` | 32B | ~20GB | Slowest | Overkill for context generation |
+
+**For vector search (embeddings):**
+
+| Model | Dimensions | RAM | Notes |
+|-------|------------|-----|-------|
+| `mxbai-embed-large` | 1024 | ~2GB | Recommended, matches pgvector config |
+| `nomic-embed-text` | 768 | ~1GB | Lighter, good alternative |
+
+**Tip:** Use 7b for seeding (~20 min vs ~51 min), then switch to 14b or 32b for queries. Context quality matters — 2b/3b models produce poor context labels that hurt search quality.
+
+```bash
+# Fast seeding setup (7b is minimum for quality context)
+ollama pull qwen2.5:7b
+ollama pull mxbai-embed-large
+
+# Configure .env.local for seeding
+AI_PROVIDER=ollama
+AI_MODEL=qwen2.5:7b
+EMBEDDING_PROVIDER=ollama
+EMBEDDING_MODEL=mxbai-embed-large
+
+# After seeding, switch to quality model for queries
+# Edit .env.local:
+AI_MODEL=qwen2.5:14b
+```
 
 ### 4. Run database migrations
 
