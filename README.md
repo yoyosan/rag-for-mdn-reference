@@ -253,11 +253,16 @@ For detailed usage, options, and prerequisites for each script, see [`scripts/RE
 
 This project supports multiple AI providers with different rate limits:
 
-| Provider | Model | Limit | Reset |
-|----------|-------|-------|-------|
-| **Groq** | `llama-3.3-70b-versatile` | 100,000 tokens/day | Daily |
-| **DeepSeek** | `deepseek-v4-flash` | Check your plan | Varies |
-| **Voyage AI** | `voyage-4-large` | Check your plan | Varies |
-| **Ollama** | Any local model | Unlimited | N/A |
+| Provider | Model | RPM | TPM | TPD | Notes |
+|----------|-------|-----|-----|-----|-------|
+| **Groq** | `llama-3.3-70b-versatile` | 30 | 12,000 | 100,000 | Free tier — `db:seed` may hit TPM limit |
+| **DeepSeek** | `deepseek-v4-flash` | Check your plan | Check your plan | Check your plan | Higher limits than Groq free tier |
+| **Voyage AI** | `voyage-4-large` | Check your plan | Check your plan | Check your plan | — |
+| **Ollama** | Any local model | Unlimited | Unlimited | N/A | Runs locally, no rate limits |
+
+**Groq free tier limitation:** The 12,000 tokens/minute limit can be hit during `db:seed` or `db:generate-contexts` since these process many chunks in sequence. If you hit a `429` error, either:
+- Wait a minute and retry
+- Switch to DeepSeek or Ollama for setup, then use Groq for queries
+- Upgrade to a Groq Developer plan for higher limits
 
 If you hit API rate limits, consider switching to a local Ollama model or upgrading to a paid tier.
