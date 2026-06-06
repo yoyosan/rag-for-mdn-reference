@@ -1,6 +1,6 @@
+import { aiModel, aiProvider } from "@/config/ai";
 import { runScript } from "@/lib/scripts/utils";
 import { performRAGQuery, RAGResponse } from "@/lib/server/rag";
-import { defaultModel } from "@/lib/shared/constants";
 
 /**
  * Format and display the RAG response
@@ -20,10 +20,11 @@ function displayRAGResponse(response: RAGResponse, question: string): void {
 
 	console.log("\n📚 SOURCES USED:");
 	console.log("-".repeat(40));
+	console.log(response.sources);
 	response.sources.forEach((source, index) => {
 		console.log(`${index + 1}. ${source.documentTitle}`);
 		console.log(`   📁 ${source.sourceFilePath}`);
-		console.log(`   🎯 Similarity: ${(source.similarity * 100).toFixed(1)}%`);
+		console.log(`   🎯 RRF Score: ${source.similarity.toFixed(4)}`);
 		console.log(
 			`   📄 "${source.content.substring(0, 100).replace(/\n/g, " ")}..."`,
 		);
@@ -85,7 +86,7 @@ async function main(): Promise<void> {
 
 	console.log("🚀 Starting RAG query...\n");
 	console.log(`📝 Question: "${question}"`);
-	console.log(`🤖 Using model: ${defaultModel}\n`);
+	console.log(`🤖 Using model: ${aiProvider}/${aiModel}\n`);
 
 	const response = await performRAGQuery(question, {
 		limit,

@@ -1,24 +1,19 @@
 import { eq } from "drizzle-orm";
-import { VoyageAIClient } from "voyageai";
+import { embeddingModel, getEmbeddingModel } from "@/config/ai";
 import { db } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
 import { Chunk } from "@/types/entities/chunk";
 
 export type ChunkRow = Pick<Chunk, "id" | "content">;
 
-if (!process.env.VOYAGE_API_KEY) {
-	throw new Error("VOYAGE_API_KEY is required in .env.local");
-}
-
-export const voyageClient = new VoyageAIClient({
-	apiKey: process.env.VOYAGE_API_KEY,
-});
-
-export async function generateEmbeddings(chunks: ChunkRow[]): Promise<void> {
+export async function generateEmbeddingsForChunks(
+	chunks: ChunkRow[],
+): Promise<void> {
 	const texts = chunks.map((chunk) => chunk.content);
-	const response = await voyageClient.embed({
+	const embedder = getEmbeddingModel();
+	const response = await embedder.embed({
 		input: texts,
-		model: "voyage-4-large",
+		model: embeddingModel,
 		inputType: "document",
 	});
 
@@ -33,15 +28,57 @@ export async function generateEmbeddings(chunks: ChunkRow[]): Promise<void> {
 	}
 
 	await db.transaction(async (tx) => {
-		for (const [i, chunk] of chunks.entries()) {
+		await Promise.all(
+			chunks.map((chunk, i) => {
+				if (response.data && response.data[i]) {
+					const embedding = response.data[i].embedding;
+
+					return tx
+						.update(chunksTable)
+						.set({ embedding })
+						.where(eq(chunksTable.id, chunk.id));
+				}
+			}),
+		);
+	});
+}
+
+export async function generateEmbeddingsForTexts(
+	texts: string[],
+): Promise<number[][]> {
+	try {
+		const embedder = getEmbeddingModel();
+		const response = await embedder.embed({
+			input: texts,
+			model: embeddingModel,
+			inputType: "document",
+		});
+
+		if (!response.data || response.data.length !== texts.length) {
+			throw new Error(
+				`Embedding count mismatch: expected ${texts.length}, got ${response.data?.length ?? 0}`,
+			);
+		}
+
+		if (response.data.some((d) => !d.embedding)) {
+			throw new Error("Received embeddings with missing data");
+		}
+
+		const result: number[][] = [];
+		for (const [i] of texts.entries()) {
 			if (response.data && response.data[i]) {
 				const embedding = response.data[i].embedding;
+				if (!embedding) {
+					throw new Error(`Missing embedding for text at index ${i}`);
+				}
 
-				await tx
-					.update(chunksTable)
-					.set({ embedding })
-					.where(eq(chunksTable.id, chunk.id));
+				result[i] = embedding;
 			}
 		}
-	});
+
+		return result;
+	} catch (error) {
+		console.error("❌ Error generating embeddings:", error);
+		throw error;
+	}
 }

@@ -2,10 +2,6 @@ import { runScript } from "@/lib/scripts/utils";
 import { performSemanticSearch } from "@/lib/server/search";
 import { SearchResult } from "@/types/semanticSearch";
 
-if (!process.env.VOYAGE_API_KEY) {
-	throw new Error("VOYAGE_API_KEY is required in .env.local");
-}
-
 function displayResults(results: SearchResult[], question: string): void {
 	console.log("\n" + "=".repeat(80));
 	console.log(`📊 SEMANTIC SEARCH RESULTS FOR: "${question}"`);

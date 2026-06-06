@@ -1,0 +1,1 @@
+ALTER TABLE "chunks" ADD COLUMN "context_prefix" text;

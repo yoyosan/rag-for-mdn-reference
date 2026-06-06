@@ -36,18 +36,36 @@ psql -d unlearn-rag-course -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
 ### 3. Configure environment variables
 
-Create a `.env.local` file in the project root:
+Copy the example environment file and update it with your configuration:
+
+```bash
+cp .env.example .env.local
+```
+
+Then edit `.env.local` with your settings:
 
 ```bash
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/unlearn-rag-course
-VOYAGE_API_KEY=your_voyage_api_key_here
-GROQ_API_KEY=your_groq_api_key_here
+AI_PROVIDER=ollama
+AI_MODEL=qwen2.5:14b
+EMBEDDING_PROVIDER=voyage
+EMBEDDING_MODEL=voyage-4-large
 ```
 
-**Where to get your API keys:**
+**Available AI Providers:**
 
-- **Voyage AI** — Sign up at [voyageai.com](https://www.voyageai.com) and create an API key from the dashboard
-- **Groq** — Sign up at [groq.com](https://groq.com) and generate an API key from your account settings
+| Provider | Models | API Key Required |
+|----------|--------|------------------|
+| **Ollama** (default) | Any local model (e.g., `qwen2.5:14b`) | No — runs locally |
+| **Groq** | `llama-3.3-70b-versatile` | Yes — [groq.com](https://groq.com) |
+| **DeepSeek** | `deepseek-v4-flash` | Yes — [deepseek.com](https://deepseek.com) |
+
+**Available Embedding Providers:**
+
+| Provider | Model | API Key Required |
+|----------|-------|------------------|
+| **Voyage AI** (default) | `voyage-4-large` | Yes — [voyageai.com](https://www.voyageai.com) |
+| **Ollama** | Any local embedding model | No — runs locally |
 
 ### 4. Run database migrations
 
@@ -73,23 +91,17 @@ This creates `chunks.json` from the markdown files in `mdn-js-docs/`.
 bun db:seed
 ```
 
-This populates the database with MDN JavaScript documentation chunks (33 documents, ~1,180 chunks). All inserts run inside a database transaction — if any step fails, the database rolls back to its previous state.
+This loads chunks from `chunks.json`, inserts documents and chunks into the database, and automatically generates embeddings for all chunks. The script uses batch processing with context generation for better search quality. It uses upsert operations — safe to re-run without duplicating data.
 
 ### 7. Generate embeddings
 
-Add your Voyage AI API key to `.env.local`:
-
-```bash
-VOYAGE_API_KEY=your_key_here
-```
-
-Then generate embeddings for all chunks:
+If you used `bun db:seed`, embeddings are already generated. Otherwise, generate embeddings for existing chunks:
 
 ```bash
 bun db:embeddings
 ```
 
-This sends chunks to Voyage AI in batches of 128 and stores the resulting 1024-dimensional vectors in the `chunks.embedding` column. The script only processes chunks that don't already have embeddings, so it's safe to re-run.
+This sends chunks to your configured embedding provider (Voyage AI or Ollama) in batches and stores the resulting vectors in the `chunks.embedding` column. The script only processes chunks that don't already have embeddings, so it's safe to re-run.
 
 ### 8. Evaluate RAG Pipeline
 
@@ -117,10 +129,10 @@ See [`evaluation/README.md`](./evaluation/README.md) for setup details.
 bun rag-query "What is a closure in JavaScript?"
 ```
 
-This performs semantic search and queries the Groq LLM with retrieved context. Supports `--limit` and `--threshold` flags:
+This performs hybrid search and queries the configured AI LLM with retrieved context. Supports `--limit` flag:
 
 ```bash
-bun rag-query "your question" --limit=10 --threshold=0.6
+bun rag-query "your question" --limit=10
 ```
 
 ### 10. Start the development server
@@ -144,7 +156,7 @@ The database uses **branded types** for type-safe IDs. Primary keys use either U
 | Table | Purpose |
 |-------|---------|
 | `documents` | Source documents (MDN guides) |
-| `chunks` | Document chunks with vector embeddings for similarity search |
+| `chunks` | Document chunks with vector embeddings and BM25 search vectors for hybrid search |
 | `conversations` | Chat conversations |
 | `messages` | Chat messages (user and AI) |
 | `message_sources` | Links between AI messages and source chunks (citations) |
@@ -158,8 +170,11 @@ bun db:generate
 # Apply pending migrations
 bun db:migrate
 
-# Seed the database with chunk data
+# Seed the database with chunks and generate embeddings
 bun db:seed
+
+# Generate embeddings for existing chunks
+bun db:embeddings
 
 # Debug migration failures
 bun db:debug-migrations
@@ -176,9 +191,11 @@ Database scripts live in `scripts/db/`. Configuration is in [`drizzle.config.ts`
 ## Development
 
 ### Architecture Note
-- **Server logic** (`src/lib/server/`) — Pure functions for embedding generation, semantic search, and RAG. Used by both CLI scripts and the Next.js API route.
-- **Shared constants** (`src/lib/shared/`) — Configuration like default LLM model, shared between server and client.
-- **API route** (`src/app/api/chat/`) — Next.js route handler that validates requests and orchestrates the RAG pipeline.
+- **AI configuration** (`src/config/`) — Centralized AI provider and model configuration with support for multiple providers (Ollama, Groq, DeepSeek) and embedding providers (Voyage AI, Ollama).
+- **AI providers** (`src/lib/aiProviders/`) — Provider-specific implementations (e.g., Ollama via OpenAI-compatible API).
+- **Server logic** (`src/lib/server/`) — Pure functions for embedding generation, hybrid search (vector + BM25), context generation, and RAG. Used by both CLI scripts and the Next.js API route.
+- **Shared constants** (`src/lib/shared/`) — Configuration like batch sizes and default models, shared between server and client.
+- **API route** (`src/app/api/chat/`) — Next.js route handler that validates requests and orchestrates the RAG pipeline with tool-based knowledge base access.
 - **CLI scripts** (`scripts/`, `scripts/db/`) — Thin wrappers around `src/lib/server/` functions for command-line usage. General scripts in `scripts/`, database-specific scripts in `scripts/db/`.
 
 ### Available Scripts
@@ -193,12 +210,12 @@ bun check-all    # Run type-check + lint
 bun chunk-docs   # Process and chunk documents
 bun db:generate         # Generate Drizzle migrations
 bun db:migrate          # Apply database migrations
-bun db:seed             # Seed database with chunk data
-bun db:embeddings       # Generate Voyage AI embeddings for chunks
+bun db:seed             # Seed database and generate embeddings
+bun db:embeddings       # Generate embeddings for existing chunks
 bun db:debug-migrations # Debug migration failures
 bun db:sync-migrations  # Sync migration journal
 bun db:rollback         # Rollback last migration
-bun semantic-search "your question"  # Search chunks by semantic similarity
+bun semantic-search "your question"  # Search chunks by hybrid search
 bun rag-query "your question"        # RAG query with LLM response
 npm run eval                         # Run all Promptfoo evaluations
 npm run eval:01                      # Run retrieval evaluation only
@@ -215,9 +232,9 @@ For detailed usage, options, and prerequisites for each script, see [`scripts/RE
 - **Framework**: [Next.js 16](https://nextjs.org) (App Router)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com)
 - **Database**: PostgreSQL + [Drizzle ORM](https://orm.drizzle.team)
-- **Vector Search**: [pgvector](https://github.com/pgvector/pgvector)
-- **Embeddings**: [Voyage AI](https://www.voyageai.com)
-- **AI/LLM**: [Vercel AI SDK](https://sdk.vercel.ai) + [Groq](https://groq.com)
+- **Vector Search**: [pgvector](https://github.com/pgvector/pgvector) + BM25 full-text search (hybrid search)
+- **Embeddings**: [Voyage AI](https://www.voyageai.com) or local [Ollama](https://ollama.com)
+- **AI/LLM**: [Vercel AI SDK](https://sdk.vercel.ai) with [Groq](https://groq.com), [DeepSeek](https://deepseek.com), or local [Ollama](https://ollama.com)
 - **Runtime**: [Bun](https://bun.sh)
 - **Linting**: [Biome](https://biomejs.dev)
 
@@ -234,11 +251,13 @@ For detailed usage, options, and prerequisites for each script, see [`scripts/RE
 
 ## Rate Limits
 
-This project uses free-tier APIs with rate limits:
+This project supports multiple AI providers with different rate limits:
 
-| Service | Limit | Reset |
-|---------|-------|-------|
-| **Groq** (`llama-3.3-70b-versatile`) | 100,000 tokens/day | Daily |
-| **Voyage AI** | Check your plan | Varies |
+| Provider | Model | Limit | Reset |
+|----------|-------|-------|-------|
+| **Groq** | `llama-3.3-70b-versatile` | 100,000 tokens/day | Daily |
+| **DeepSeek** | `deepseek-v4-flash` | Check your plan | Varies |
+| **Voyage AI** | `voyage-4-large` | Check your plan | Varies |
+| **Ollama** | Any local model | Unlimited | N/A |
 
-If you hit Groq's rate limit, the error message will show how long to wait. Consider upgrading to a paid tier for production use.
+If you hit API rate limits, consider switching to a local Ollama model or upgrading to a paid tier.

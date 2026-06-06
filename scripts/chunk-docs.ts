@@ -3,7 +3,6 @@ import path from "node:path";
 import { MarkdownTextSplitter } from "@langchain/textsplitters";
 import { runScript } from "@/lib/scripts/utils";
 import {
-	ChunkOutput,
 	collectMarkdownFiles,
 	DocumentMetadata,
 	findHeadings,
@@ -12,6 +11,8 @@ import {
 	loadFilePayload,
 	normalizeText,
 } from "@/lib/server/chunking";
+import { ChunkId } from "@/types/brands";
+import { ChunkData } from "@/types/scripts/chunk";
 
 const projectRoot = path.resolve(import.meta.dir, "..");
 const docsRoot = path.resolve(projectRoot, "mdn-js-docs");
@@ -19,14 +20,14 @@ const outputPath = path.resolve(projectRoot, "chunks.json");
 
 const splitter = new MarkdownTextSplitter({
 	chunkSize: 1000,
-	chunkOverlap: 100,
+	chunkOverlap: 200,
 });
 
 async function main(): Promise<void> {
 	await mkdir(projectRoot, { recursive: true });
 
 	const markdownFiles = await collectMarkdownFiles(docsRoot);
-	const chunks: ChunkOutput[] = [];
+	const chunks: ChunkData[] = [];
 	let skippedEmpty = 0;
 	let skippedFrontmatter = 0;
 	let processedFiles = 0;
@@ -74,7 +75,7 @@ async function main(): Promise<void> {
 			const heading = findNearestHeading(headings, startLine);
 
 			chunks.push({
-				id: `${payload.frontmatter.slug}-${chunkIndex}`,
+				id: `${relativePath}-chunk_${chunkIndex}` as ChunkId,
 				text: document.pageContent,
 				source: payload.relativePath,
 				title: payload.frontmatter.title,

@@ -1,13 +1,8 @@
-import { groq } from "@ai-sdk/groq";
 import { generateText } from "ai";
+import { getAIModel } from "@/config/ai";
 import { transformChunksForFrontend } from "@/lib/helpers/aiTools";
 import { performSemanticSearch } from "@/lib/server/search";
-import { defaultModel } from "@/lib/shared/constants";
 import { SearchResult } from "@/types/semanticSearch";
-
-if (!process.env.GROQ_API_KEY) {
-	throw new Error("GROQ_API_KEY is required in .env.local");
-}
 
 export interface RAGResponse {
 	answer: string;
@@ -43,7 +38,8 @@ export const ragSystemPrompt = `You are a helpful AI assistant that answers ques
 8. Always include a link to referenced context document (it's url)
 9. If the question is unrelated to the context, say so and don't try to answer it
 10. Never ask a user to provide more context, they cannot.
-11. When referring to the context documents, always use the term "MDN documentation"`;
+11. When referring to the context documents, always use the term "MDN documentation"
+12. Always show examples of code usage from the documentation.`;
 
 /**
  * Create a prompt that combines the user's question with retrieved context
@@ -62,12 +58,11 @@ Answer:`;
 async function queryLLM(
 	question: string,
 	context: string,
-	model: string = defaultModel,
 ): Promise<{ answer: string; tokensUsed?: number }> {
 	const prompt = createRAGPrompt(question, context);
 
 	const { text, usage } = await generateText({
-		model: groq(model),
+		model: getAIModel(),
 		prompt,
 		temperature: 0.1,
 	});
@@ -79,10 +74,9 @@ export async function performRAGQuery(
 	question: string,
 	options: {
 		limit?: number;
-		model?: string;
 	} = {},
 ): Promise<RAGResponse> {
-	const { limit = 5, model = defaultModel } = options;
+	const { limit = 5 } = options;
 
 	const retrievedChunks = await performSemanticSearch(question, limit);
 
@@ -95,7 +89,7 @@ export async function performRAGQuery(
 	}
 
 	const context = formatContextFromChunks(retrievedChunks);
-	const llmResponse = await queryLLM(question, context, model);
+	const llmResponse = await queryLLM(question, context);
 
 	return {
 		answer: llmResponse.answer,

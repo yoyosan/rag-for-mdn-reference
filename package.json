@@ -13,7 +13,7 @@
 		"chunk-docs": "bun run scripts/chunk-docs.ts",
 		"db:generate": "bun --env-file=.env.local drizzle-kit generate --config=drizzle.config.ts",
 		"db:migrate": "bun --env-file=.env.local drizzle-kit migrate --config=drizzle.config.ts",
-		"db:seed": "bun --env-file=.env.local scripts/db/seed-db.ts",
+		"db:seed": "bun --env-file=.env.local scripts/db/seed.ts",
 		"db:embeddings": "bun --env-file=.env.local scripts/db/generate-embeddings.ts",
 		"semantic-search": "bun --env-file=.env.local scripts/semantic-search.ts",
 		"rag-query": "bun --env-file=.env.local scripts/rag-query.ts",
@@ -29,7 +29,9 @@
 	},
 	"packageManager": "bun@1.3.14",
 	"dependencies": {
+		"@ai-sdk/deepseek": "2.0.35",
 		"@ai-sdk/groq": "3.0.38",
+		"@ai-sdk/openai": "3.0.65",
 		"@ai-sdk/react": "3.0.179",
 		"@langchain/textsplitters": "1.0.1",
 		"@tailwindcss/typography": "0.5.19",
@@ -55,6 +57,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "2.4.13",
 		"@tailwindcss/postcss": "4.2.4",
+		"@types/bun": "1.3.14",
 		"@types/node": "20.19.39",
 		"@types/pg": "8.20.0",
 		"@types/react": "19.2.14",
@@ -63,6 +66,8 @@
 		"babel-plugin-react-compiler": "1.0.0",
 		"bun-scan": "1.1.2",
 		"drizzle-kit": "0.31.10",
+		"pino": "10.3.1",
+		"pino-pretty": "13.1.3",
 		"promptfoo": "0.121.11",
 		"tailwindcss": "4.2.4",
 		"typescript": "5.9.3"

@@ -1,15 +1,16 @@
 import { cosineDistance, eq, sql } from "drizzle-orm";
+import { embeddingModel, getEmbeddingModel } from "@/config/ai";
 import { db } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
 import { documentsTable } from "@/db/schema/documents";
-import { voyageClient } from "@/lib/server/embeddings";
 import { RankedSearchResult, SearchResult } from "@/types/semanticSearch";
 
 export async function generateQuestionEmbedding(
 	question: string,
 ): Promise<number[]> {
-	const response = await voyageClient.embed({
-		model: "voyage-4-large",
+	const embedder = getEmbeddingModel();
+	const response = await embedder.embed({
+		model: embeddingModel,
 		input: question,
 	});
 
@@ -60,14 +61,12 @@ export async function performSemanticSearch(
 	onResults?: (results: SearchResult[]) => void,
 ): Promise<SearchResult[]> {
 	const questionEmbedding = await generateQuestionEmbedding(question);
-	const similarityThreshold = 0.01;
 
 	const results: SearchResult[] = await hybridSearch(
 		question,
 		questionEmbedding,
 		limit,
 		{
-			similarityThreshold,
 			rrfK: 60,
 		},
 	);
@@ -111,14 +110,17 @@ async function hybridSearch(
 	questionEmbedding: number[],
 	limit: number = 5,
 	options: {
-		similarityThreshold?: number;
 		rrfK?: number;
 	} = {},
 ): Promise<SearchResult[]> {
-	const { similarityThreshold = 0.5, rrfK = 60 } = options;
+	const { rrfK = 60 } = options;
+	// RRF scores are ~0.01-0.016; this keeps all fused candidates
+	const rrfSimilarityThreshold = 0.01;
+	// Cosine similarity for vector candidate retrieval
+	const vectorSimilarityThreshold = 0.6;
 
 	const [vectorResults, bm25Results] = await Promise.all([
-		searchSimilarChunks(questionEmbedding, 20, 0.1), // lower threshold to get more results
+		searchSimilarChunks(questionEmbedding, 20, vectorSimilarityThreshold),
 		searchWithBM25(question, 20),
 	]);
 
@@ -129,7 +131,7 @@ async function hybridSearch(
 	);
 
 	const filteredResults = combinedResults
-		.filter((result) => result.similarity >= similarityThreshold)
+		.filter((result) => result.similarity >= rrfSimilarityThreshold)
 		.slice(0, limit);
 
 	return filteredResults;

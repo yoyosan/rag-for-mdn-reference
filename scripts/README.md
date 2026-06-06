@@ -32,7 +32,7 @@ bun chunk-docs
 
 ### `semantic-search.ts`
 
-Performs semantic search over chunks using pgvector cosine distance.
+Performs hybrid search over chunks using vector similarity and BM25 full-text search with reciprocal rank fusion.
 
 **Usage:**
 
@@ -44,14 +44,14 @@ bun semantic-search
 bun semantic-search "your question here"
 
 # With options
-bun semantic-search "your question" --limit=10 --threshold=0.6
+bun semantic-search "your question" --limit=10
 ```
 
 **What it does:**
 
-- Generates an embedding for the question via Voyage AI
-- Queries PostgreSQL with pgvector's `<=>` operator (cosine distance)
-- Filters results by similarity threshold
+- Generates an embedding for the question via the configured embedding provider
+- Performs parallel vector search (pgvector cosine distance) and BM25 full-text search
+- Combines results using reciprocal rank fusion for better relevance
 - Displays ranked results with document titles, similarity scores, and content previews
 
 **Options:**
@@ -59,13 +59,12 @@ bun semantic-search "your question" --limit=10 --threshold=0.6
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--limit=N` | Maximum number of results | 5 |
-| `--threshold=N` | Minimum similarity (0-1) | 0.5 |
 
 ---
 
 ### `rag-query.ts`
 
-Full RAG pipeline: semantic search + LLM response via Groq.
+Full RAG pipeline: hybrid search + LLM response via the configured AI provider.
 
 **Usage:**
 
@@ -77,14 +76,14 @@ bun rag-query
 bun rag-query "your question here"
 
 # With options
-bun rag-query "your question" --limit=5 --threshold=0.5
+bun rag-query "your question" --limit=10
 ```
 
 **What it does:**
 
-1. Retrieves relevant chunks via semantic search
+1. Retrieves relevant chunks via hybrid search (vector + BM25)
 2. Formats chunks as structured context (JSON with metadata, content, and source URLs)
-3. Sends augmented prompt to Groq LLM (`llama-3.3-70b-versatile`)
+3. Sends augmented prompt to the configured AI provider (Ollama, Groq, or DeepSeek)
 4. Displays the AI answer with cited sources and token usage
 
 **Options:**
@@ -92,12 +91,11 @@ bun rag-query "your question" --limit=5 --threshold=0.5
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--limit=N` | Maximum chunks to retrieve | 5 |
-| `--threshold=N` | Minimum similarity (0-1) | 0.5 |
 
 **Prerequisites:**
 
-- `GROQ_API_KEY` must be set in `.env.local`
-- Embeddings must be generated (`bun db:embeddings`)
+- AI provider configured in `.env.local` (`AI_PROVIDER` and provider-specific API keys)
+- Embeddings must be generated (`bun db:seed` or `bun db:embeddings`)
 
 ---
 
@@ -105,9 +103,9 @@ bun rag-query "your question" --limit=5 --threshold=0.5
 
 Located in `scripts/db/`:
 
-### `seed-db.ts`
+### `seed.ts`
 
-Seeds the database with documents and chunks from `chunks.json`.
+Seeds the database with documents and chunks from `chunks.json`, then generates embeddings.
 
 **Usage:**
 
@@ -118,21 +116,25 @@ bun db:seed
 **What it does:**
 
 - Loads `chunks.json`
-- Groups chunks by document (slug)
-- Inserts documents into the `documents` table
-- Inserts all chunks into the `chunks` table with foreign key references
-- Runs inside a transaction — all-or-nothing insertion
+- Analyzes existing documents and chunks in the database
+- Inserts new documents into the `documents` table
+- Inserts new chunks into the `chunks` table with foreign key references
+- Generates context prefixes for chunks using the configured AI provider
+- Generates embeddings for all chunks using the configured embedding provider
+- Uses batch processing with configurable batch sizes
+- Uses upsert operations — safe to re-run without duplicating data
 
 **Prerequisites:**
 
 - Database must be created and migrations applied (`bun db:migrate`)
 - `chunks.json` must exist (run `bun chunk-docs` first)
+- AI provider configured in `.env.local` (for context generation)
 
 ---
 
 ### `generate-embeddings.ts`
 
-Generates vector embeddings for chunks using Voyage AI.
+Generates vector embeddings for chunks using the configured embedding provider.
 
 **Usage:**
 
@@ -143,13 +145,13 @@ bun db:embeddings
 **What it does:**
 
 - Fetches chunks without embeddings from the database
-- Sends batches of 128 chunks to Voyage AI (`voyage-4-large` model)
-- Stores 1024-dimensional vectors in the `chunks.embedding` column
+- Sends batches to the configured embedding provider (Voyage AI or Ollama)
+- Stores vectors in the `chunks.embedding` column
 - Only processes chunks missing embeddings — safe to re-run
 
 **Prerequisites:**
 
-- `VOYAGE_API_KEY` must be set in `.env.local`
+- Embedding provider configured in `.env.local` (`VOYAGE_API_KEY` for Voyage AI, or Ollama running locally)
 - Database must be seeded with chunks (`bun db:seed`)
 
 ---
@@ -210,14 +212,11 @@ For a complete setup, run scripts in this order:
 # 1. Generate chunks from MDN docs
 bun chunk-docs
 
-# 2. Set up database
+# 2. Set up database and generate embeddings
 bun db:migrate
 bun db:seed
 
-# 3. Generate embeddings
-bun db:embeddings
-
-# 4. Query
+# 3. Query
 bun semantic-search "What is a closure?"
 bun rag-query "What is a closure?"
 ```

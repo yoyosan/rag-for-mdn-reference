@@ -8,20 +8,6 @@ interface FrontmatterData {
 	sidebar: string;
 }
 
-export interface ChunkOutput {
-	id: string;
-	text: string;
-	source: string;
-	title: string;
-	slug: string;
-	pageType: string;
-	heading: string | null;
-	headingLevel: number | null;
-	headingLineNumber: number | null;
-	startLine: number;
-	endLine: number;
-}
-
 interface HeadingInfo {
 	line: number;
 	level: 2 | 3;

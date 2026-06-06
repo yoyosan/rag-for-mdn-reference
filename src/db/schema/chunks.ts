@@ -36,6 +36,7 @@ export const chunksTable = pgTable(
 		wordCount: integer("word_count").notNull(),
 		embedding: vector("embedding", { dimensions: 1024 }),
 		searchVector: tsvector("search_vector"),
+		contextPrefix: text("context_prefix"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
 			.defaultNow()

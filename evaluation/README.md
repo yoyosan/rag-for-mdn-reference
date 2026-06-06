@@ -10,7 +10,7 @@ Automated evaluation of the RAG pipeline using [Promptfoo](https://promptfoo.dev
   ```
 - **Embeddings generated** — Evaluations query the vector database. If embeddings are missing, tests will return empty results.
   ```bash
-  bun db:embeddings
+  bun db:seed
   ```
 
 ## Running Evaluations
