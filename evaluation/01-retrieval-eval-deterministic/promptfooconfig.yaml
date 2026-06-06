@@ -12,5 +12,5 @@ tests:
     assert:
       - type: contains-all
         value:
-          - Web/JavaScript/Guide/Grammar_and_types-10
-          - Web/JavaScript/Guide/Language_overview-16
+          - mdn-js-docs/grammar_and_types/index.md-chunk_8
+          - mdn-js-docs/expressions_and_operators/index.md-chunk_1

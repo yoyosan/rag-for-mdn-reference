@@ -20,7 +20,7 @@
 		"db:debug-migrations": "bun --env-file=.env.local scripts/db/debug-migrations.ts",
 		"db:sync-migrations": "bun --env-file=.env.local scripts/db/sync-migrations.ts",
 		"db:rollback": "bun --env-file=.env.local scripts/db/rollback-migration.ts",
-		"eval": "npm run eval:01 && npm run eval:02",
+		"eval": "npm run eval:01 && rm -rf ~/.promptfoo/cache && npm run eval:02",
 		"eval:01": "export $(grep -v '^#' .env.local | xargs) && cd evaluation/01-retrieval-eval-deterministic && npx promptfoo eval",
 		"eval:02": "export $(grep -v '^#' .env.local | xargs) && cd evaluation/02-context-adherence && npx promptfoo eval",
 		"eval:view": "npm run eval:view:01 && npm run eval:view:02",

@@ -12,6 +12,7 @@ export async function generateQuestionEmbedding(
 	const response = await embedder.embed({
 		model: embeddingModel,
 		input: question,
+		inputType: "query",
 	});
 
 	if (!response.data || response.data.length === 0) {

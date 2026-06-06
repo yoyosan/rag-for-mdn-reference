@@ -6,6 +6,11 @@ prompts:
 providers:
   - file://provider.ts
 
+defaultTest:
+  options:
+    provider:
+      text: file://grading-provider.ts
+
 tests:
   ## Sticks to provided context to answer the question (Context adherence test)
   - vars:
