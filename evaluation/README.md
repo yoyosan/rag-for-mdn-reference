@@ -85,6 +85,25 @@ tests:
         threshold: 0.9
 ```
 
+## Known Issues
+
+### Model-Specific Results
+
+Context adherence tests (02) use `context-faithfulness` assertions where **the grading model is the same as the RAG model** (both use `getAIModel()`). This is intentional — the eval should reflect what users actually experience in the interface and CLI.
+
+However, this means eval results are tied to a specific provider/model combination. When you switch providers (e.g., Ollama → LM Studio):
+- Different models format output differently (markdown links, list structure, etc.)
+- The system prompt in `rag.ts` instructs models to "Always include a link to referenced context document" — different models follow this differently
+- The same model both generates answers and grades faithfulness, so its judgment varies
+
+**After switching providers:** Re-run evaluations to establish new baselines for that model. The current evals are tuned for **LM Studio** with **qwen2.5-14b-instruct-mlx** — if you use a different provider or model, expect to adjust assertions. Clear the cache first:
+```bash
+rm -rf node_modules/.cache/promptfoo
+npm run eval
+```
+
+If a previously passing test now fails, compare the actual output — the answer may be correct but formatted differently. Adjust assertions or thresholds in `promptfooconfig.yaml` to match the new model's behavior.
+
 ## Security Note
 
 Installing `promptfoo` transitively pulls in `@huggingface/transformers` → `onnxruntime-web` → `protobufjs`, which has multiple open security advisories. The project mitigates this via a `package.json` override forcing `protobufjs >= 7.5.0`. See [SECURITY.md](../SECURITY.md) for full details.

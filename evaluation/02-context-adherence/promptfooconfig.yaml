@@ -20,9 +20,9 @@ tests:
         transform: "output.answer"
         contextTransform: "output.context"
         value: |
-          - A general understanding of the Internet and the World Wide Web (WWW)
-          - Good working knowledge of HyperText Markup Language (HTML)
-          - Some programming experience.
+          1. A general understanding of the Internet and the World Wide Web (WWW)
+          2. Good working knowledge of HyperText Markup Language (HTML)
+          3. Some programming experience.
           For more details see [refer to the Introduction](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Introduction)
         threshold: 0.9 # Require 90% of claims to be supported
 
