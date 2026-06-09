@@ -20,11 +20,15 @@ function displayRAGResponse(response: RAGResponse, question: string): void {
 
 	console.log("\n📚 SOURCES USED:");
 	console.log("-".repeat(40));
-	console.log(response.sources);
 	response.sources.forEach((source, index) => {
 		console.log(`${index + 1}. ${source.documentTitle}`);
 		console.log(`   📁 ${source.sourceFilePath}`);
 		console.log(`   🎯 RRF Score: ${source.similarity.toFixed(4)}`);
+		if (source.rerankScore !== undefined) {
+			console.log(
+				`   ⭐ Rerank Score: ${(source.rerankScore * 100).toFixed(2)}%`,
+			);
+		}
 		console.log(
 			`   📄 "${source.content.substring(0, 100).replace(/\n/g, " ")}..."`,
 		);

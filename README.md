@@ -1,6 +1,6 @@
 # Unlearn Dev RAG Course
 
-A Next.js course project demonstrating hybrid RAG (vector search + BM25) with multiple AI/embedding providers, PostgreSQL + pgvector, and Promptfoo evaluations — using MDN JavaScript docs as the knowledge base.
+A Next.js course project demonstrating hybrid RAG with a 3-stage retrieval pipeline (vector search + BM25 → Reciprocal Rank Fusion → Voyage reranking), multiple AI/embedding providers, PostgreSQL + pgvector, and Promptfoo evaluations — using MDN JavaScript docs as the knowledge base.
 
 
 ## Prerequisites
@@ -51,13 +51,19 @@ AI_PROVIDER=ollama
 AI_MODEL=qwen2.5:14b
 EMBEDDING_PROVIDER=voyage
 EMBEDDING_MODEL=voyage-4-large
+RERANK_PROVIDER=voyage
+RERANK_MODEL=rerank-2.5
+VOYAGE_API_KEY=your_voyage_api_key_here
 ```
+
+**Note:** `VOYAGE_API_KEY` is required for the reranking stage even if you use `EMBEDDING_PROVIDER=ollama` for embeddings. The reranker uses Voyage AI's `rerank-2.5` model to reorder results from the initial hybrid search.
 
 **Available AI Providers:**
 
 | Provider | Models | API Key Required |
 |----------|--------|------------------|
-| **Ollama** (default) | Any local model (e.g., `qwen2.5:14b`) | No — runs locally |
+| **Ollama** | Any local model (e.g., `qwen2.5:14b`) | No — runs locally |
+| **LM Studio** | Any local model (e.g., `qwen2.5-14b-instruct-mlx`) | No — runs locally |
 | **Groq** | `llama-3.3-70b-versatile` | Yes — [groq.com](https://groq.com) |
 | **DeepSeek** | `deepseek-v4-flash` | Yes — [deepseek.com](https://deepseek.com) |
 
@@ -67,6 +73,10 @@ EMBEDDING_MODEL=voyage-4-large
 |----------|-------|------------------|
 | **Voyage AI** (default) | `voyage-4-large` | Yes — [voyageai.com](https://www.voyageai.com) |
 | **Ollama** | Any local embedding model | No — runs locally |
+
+**Reranking:**
+
+Reranking uses [Voyage AI](https://www.voyageai.com) `rerank-2.5` regardless of embedding provider. `VOYAGE_API_KEY` is always required.
 
 **Ollama Model Recommendations (≤32GB RAM):**
 
@@ -107,6 +117,9 @@ AI_PROVIDER=ollama
 AI_MODEL=qwen2.5:7b
 EMBEDDING_PROVIDER=ollama
 EMBEDDING_MODEL=mxbai-embed-large
+RERANK_PROVIDER=voyage
+RERANK_MODEL=rerank-2.5
+VOYAGE_API_KEY=your_voyage_api_key_here
 
 # After seeding, switch to quality model for queries
 # Edit .env.local:
@@ -237,9 +250,13 @@ Database scripts live in `scripts/db/`. Configuration is in [`drizzle.config.ts`
 ## Development
 
 ### Architecture Note
-- **AI configuration** (`src/config/`) — Centralized AI provider and model configuration with support for multiple providers (Ollama, Groq, DeepSeek) and embedding providers (Voyage AI, Ollama).
-- **AI providers** (`src/lib/aiProviders/`) — Provider-specific implementations (e.g., Ollama via OpenAI-compatible API).
-- **Server logic** (`src/lib/server/`) — Pure functions for embedding generation, hybrid search (vector + BM25), context generation, and RAG. Used by both CLI scripts and the Next.js API route.
+- **AI configuration** (`src/config/`) — Centralized AI provider and model configuration with support for multiple providers (Ollama, Groq, DeepSeek), embedding providers (Voyage AI, Ollama), and reranking (Voyage AI).
+- **AI providers** (`src/lib/aiProviders/`) — Provider-specific implementations (e.g., Ollama and LM Studio via OpenAI-compatible API).
+- **Server logic** (`src/lib/server/`) — Pure functions for embedding generation, hybrid search (vector + BM25), reranking, context generation, and RAG. Used by both CLI scripts and the Next.js API route.
+- **3-stage retrieval pipeline** (`src/lib/server/search.ts`):
+  1. **Vector + BM25 hybrid search** — Combines pgvector similarity search with PostgreSQL full-text search
+  2. **Reciprocal Rank Fusion (RRF)** — Merges results from both search methods into a single ranked list
+  3. **Voyage reranking** — Reorders fused results using Voyage AI's `rerank-2.5` model for final relevance scoring (gracefully falls back to RRF order on failure)
 - **Shared constants** (`src/lib/shared/`) — Configuration like batch sizes and default models, shared between server and client.
 - **API route** (`src/app/api/chat/`) — Next.js route handler that validates requests and orchestrates the RAG pipeline with tool-based knowledge base access.
 - **CLI scripts** (`scripts/`, `scripts/db/`) — Thin wrappers around `src/lib/server/` functions for command-line usage. General scripts in `scripts/`, database-specific scripts in `scripts/db/`.
@@ -278,9 +295,9 @@ For detailed usage, options, and prerequisites for each script, see [`scripts/RE
 - **Framework**: [Next.js 16](https://nextjs.org) (App Router)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com)
 - **Database**: PostgreSQL + [Drizzle ORM](https://orm.drizzle.team)
-- **Vector Search**: [pgvector](https://github.com/pgvector/pgvector) + BM25 full-text search (hybrid search)
+- **Vector Search**: [pgvector](https://github.com/pgvector/pgvector) + BM25 full-text search (hybrid search) with [Voyage AI reranking](https://www.voyageai.com)
 - **Embeddings**: [Voyage AI](https://www.voyageai.com) or local [Ollama](https://ollama.com)
-- **AI/LLM**: [Vercel AI SDK](https://sdk.vercel.ai) with [Groq](https://groq.com), [DeepSeek](https://deepseek.com), or local [Ollama](https://ollama.com)
+- **AI/LLM**: [Vercel AI SDK](https://sdk.vercel.ai) with [Groq](https://groq.com), [DeepSeek](https://deepseek.com), [Ollama](https://ollama.com), or [LM Studio](https://lmstudio.ai)
 - **Runtime**: [Bun](https://bun.sh)
 - **Linting**: [Biome](https://biomejs.dev)
 
@@ -303,7 +320,7 @@ This project supports multiple AI providers with different rate limits:
 |----------|-------|-----|-----|-----|-------|
 | **Groq** | `llama-3.3-70b-versatile` | 30 | 12,000 | 100,000 | Free tier — `db:seed` may hit TPM limit |
 | **DeepSeek** | `deepseek-v4-flash` | Check your plan | Check your plan | Check your plan | Higher limits than Groq free tier |
-| **Voyage AI** | `voyage-4-large` | Check your plan | Check your plan | Check your plan | — |
+| **Voyage AI** | `voyage-4-large` | Check your plan | Check your plan | Check your plan | Embeddings + reranking |
 | **Ollama** | Any local model | Unlimited | Unlimited | N/A | Runs locally, no rate limits |
 
 **Groq free tier limitation:** The 12,000 tokens/minute limit can be hit during `db:seed` or `db:generate-contexts` since these process many chunks in sequence. If you hit a `429` error, either:

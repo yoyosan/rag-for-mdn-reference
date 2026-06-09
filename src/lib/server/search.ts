@@ -3,6 +3,7 @@ import { embeddingModel, getEmbeddingModel } from "@/config/ai";
 import { db } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
 import { documentsTable } from "@/db/schema/documents";
+import { rerankResults } from "@/lib/server/reranker";
 import { RankedSearchResult, SearchResult } from "@/types/semanticSearch";
 
 export async function generateQuestionEmbedding(
@@ -63,7 +64,7 @@ export async function performSemanticSearch(
 ): Promise<SearchResult[]> {
 	const questionEmbedding = await generateQuestionEmbedding(question);
 
-	const results: SearchResult[] = await hybridSearch(
+	const hybridResults: SearchResult[] = await hybridSearch(
 		question,
 		questionEmbedding,
 		limit,
@@ -71,6 +72,20 @@ export async function performSemanticSearch(
 			rrfK: 60,
 		},
 	);
+
+	let results: SearchResult[] = [];
+	try {
+		const rerankedResults = await rerankResults<SearchResult>(
+			question,
+			hybridResults,
+		);
+		results = rerankedResults.slice(0, limit);
+	} catch (error) {
+		console.error("rerank failed, falling back to hybrid search order", {
+			error,
+		});
+		results = hybridResults.slice(0, limit);
+	}
 
 	onResults?.(results);
 

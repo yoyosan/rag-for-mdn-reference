@@ -2,6 +2,7 @@ import { deepseek } from "@ai-sdk/deepseek";
 import { groq } from "@ai-sdk/groq";
 import { LanguageModel } from "ai";
 import { VoyageAIClient } from "voyageai";
+import { lmstudioChat } from "@/lib/aiProviders/lmstudio";
 import { ollama } from "@/lib/aiProviders/ollama";
 import { ollamaModel } from "@/lib/shared/constants";
 import { AIProviders, AIProviderType, Embedder } from "@/types/aiProviders";
@@ -36,8 +37,14 @@ export function getAIModel(modelOverride?: string): LanguageModel {
 			}
 
 			return deepseek(modelName);
-		default:
+		case "lmstudio":
+			return lmstudioChat(modelName);
+
+		case "ollama":
 			return ollama(modelName);
+
+		default:
+			throw new Error(`Unknown provider: ${PROVIDER}`);
 	}
 }
 
@@ -74,5 +81,23 @@ export function getEmbeddingModel(modelOverride?: string): Embedder {
 			return new VoyageAIClient({
 				apiKey: process.env.VOYAGE_API_KEY,
 			}) as unknown as Embedder;
+	}
+}
+
+const RERANK_PROVIDER = process.env.RERANK_PROVIDER || "voyage";
+const RERANK_MODEL = process.env.RERANK_MODEL || "rerank-2.5";
+export const rerankModel = RERANK_MODEL;
+
+export function getRerankModel() {
+	switch (RERANK_PROVIDER) {
+		case "voyage":
+		default:
+			if (!process.env.VOYAGE_API_KEY) {
+				throw new Error("VOYAGE_API_KEY is required in .env.local");
+			}
+
+			return new VoyageAIClient({
+				apiKey: process.env.VOYAGE_API_KEY,
+			});
 	}
 }

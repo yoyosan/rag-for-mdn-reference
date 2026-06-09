@@ -1,4 +1,4 @@
-export const AIProviders = ["ollama", "groq", "deepseek"] as const;
+export const AIProviders = ["ollama", "groq", "deepseek", "lmstudio"] as const;
 export type AIProviderType = (typeof AIProviders)[number];
 
 export interface Embedder {

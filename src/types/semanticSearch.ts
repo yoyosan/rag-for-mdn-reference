@@ -12,6 +12,7 @@ export type SearchResult = {
 	documentSlug: string | null;
 	bm25Score?: number; // BM25 score from keyword search
 	vectorScore?: number; // Vector score from semantic search
+	rerankScore?: number; // Rerank relevance score
 };
 
 export type RankedSearchResult = Omit<SearchResult, "similarity">;

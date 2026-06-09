@@ -32,7 +32,7 @@ bun chunk-docs
 
 ### `semantic-search.ts`
 
-Performs hybrid search over chunks using vector similarity and BM25 full-text search with reciprocal rank fusion.
+Performs hybrid search over chunks using vector similarity, BM25 full-text search, reciprocal rank fusion, and Voyage reranking.
 
 **Usage:**
 
@@ -83,7 +83,7 @@ bun rag-query "your question" --limit=10
 
 1. Retrieves relevant chunks via hybrid search (vector + BM25)
 2. Formats chunks as structured context (JSON with metadata, content, and source URLs)
-3. Sends augmented prompt to the configured AI provider (Ollama, Groq, or DeepSeek)
+3. Sends augmented prompt to the configured AI provider (Ollama, LM Studio, Groq, or DeepSeek)
 4. Displays the AI answer with cited sources and token usage
 
 **Options:**
