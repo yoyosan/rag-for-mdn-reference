@@ -1,5 +1,7 @@
 # Unlearn Dev RAG Course
 
+![RAG Document Search — AI-powered semantic search with hybrid retrieval](./assets/showcase.png)
+
 A Next.js course project demonstrating hybrid RAG with a 3-stage retrieval pipeline (vector search + BM25 → Reciprocal Rank Fusion → Voyage reranking), multiple AI/embedding providers, PostgreSQL + pgvector, and Promptfoo evaluations — using MDN JavaScript docs as the knowledge base.
 
 <img width="480" height="437" alt="CleanShot 2026-06-10 at 09 40 00" src="https://github.com/user-attachments/assets/be08f3c7-5be3-4293-ae36-0cdd0042d205" />
