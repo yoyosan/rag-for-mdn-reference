@@ -8,23 +8,87 @@ This is a learning/demo project. Security updates are applied on a best-effort b
 |---------|-----------|
 | `main`  | Yes       |
 
+## Override Summary
+
+All known transitive vulnerabilities are mitigated via `package.json` overrides:
+
+```json
+"overrides": {
+  "postcss": "^8.5.10",
+  "uuid": "^14.0.0",
+  "hono": "^4.12.21",
+  "axios": "^1.8.0",
+  "langsmith": ">=0.6.0",
+  "protobufjs": ">=7.5.0",
+  "qs": "^6.15.2",
+  "esbuild": "^0.25.0",
+  "ws": "^8.20.1"
+}
+```
+
+Run `bun install` to apply all overrides.
+
 ## Known Vulnerabilities
+
+### axios — GHSA-fvcv-3m26-pcqx (and related CVEs)
+
+**Status:** Mitigated (override applied)  
+**Severity:** High  
+**Affected package:** `axios < 1.8.0` (via `promptfoo` → `@slack/web-api`)  
+**Current version in lockfile:** Forced to `>=1.8.0` by override
+
+**Details:**
+Multiple CVEs affect older axios versions: MitM via prototype pollution, proxy-authorization credential leaks, ReDoS via cookie injection, and NO_PROXY bypass. All are transitive via promptfoo's Slack integration.
+
+**Why this is accepted:**
+`promptfoo` is a development-only evaluation tool. The `@slack/web-api` dependency is not exercised by this project. The vulnerable codepaths are dead code in `node_modules`.
+
+**Remediation path:**
+Override forces `axios >= 1.8.0`:
+
+```json
+"overrides": {
+  "axios": "^1.8.0"
+}
+```
+
+### hono — CVE-2026-47673 (and related CVEs)
+
+**Status:** Mitigated (override applied)  
+**Severity:** Medium  
+**Affected package:** `hono < 4.12.21` (via `promptfoo`)  
+**Current version in lockfile:** Forced to `>=4.12.21` by override
+
+**Details:**
+Multiple CVEs: JWT middleware accepts any Authorization scheme, cookie helper doesn't sanitize sameSite/priority, app.mount() strips prefix using undecoded path, IP restriction bypasses for non-canonical IPv6.
+
+**Why this is accepted:**
+`promptfoo` is development-only. Hono is not used as a runtime server in this project.
+
+**Remediation path:**
+Override forces `hono >= 4.12.21`:
+
+```json
+"overrides": {
+  "hono": "^4.12.21"
+}
+```
 
 ### langsmith — GHSA-3644-q5cj-c5c7 (CVE-2026-45134)
 
-**Status:** Accepted (not blocking)  
+**Status:** Mitigated (override applied)  
 **Severity:** High  
 **Affected package:** `langsmith < 0.6.0`  
-**Current version in lockfile:** `0.5.26`
+**Current version in lockfile:** Forced to `>=0.6.0` by override
 
 **Details:**
-The LangSmith SDK's prompt pull methods (`pullPrompt`, `pullPromptCommit`) fetch and deserialize prompt manifests that may contain serialized LangChain objects. When pulling a *public* prompt by `owner/name`, the manifest is controlled by an external party. Prior to `0.6.0`, the SDK did not require explicit opt-in for this trust boundary.
+The LangSmith SDK's prompt pull methods (`pullPrompt`, `pullPromptCommit`) fetch and deserialize prompt manifests that may contain serialized LangChain objects. Prior to `0.6.0`, the SDK did not require explicit opt-in for this trust boundary.
 
 **Why this is accepted:**
-This codebase does not call `pullPrompt()` or `pullPromptCommit()`. The vulnerable codepaths are not exercised by the application. The vulnerability exists only as transitive dead code in `node_modules`.
+This codebase does not call `pullPrompt()` or `pullPromptCommit()`. The vulnerable codepaths are not exercised by the application.
 
 **Remediation path:**
-Add to `package.json`:
+Override forces `langsmith >= 0.6.0`:
 
 ```json
 "overrides": {
@@ -32,63 +96,67 @@ Add to `package.json`:
 }
 ```
 
-Then run `bun install` and verify with:
-
-```bash
-grep 'langsmith@' bun.lock
-```
-
-Expected output should show `langsmith@0.6.x` or higher.
-
 Note: Updating `langchain` or `@langchain/core` alone does **not** resolve this, because all current versions specify `"langsmith": ">=0.5.0 <1.0.0"`, which allows but does not require `>=0.6.0`.
 
 ### postcss — CVE-2026-41305
 
-**Status:** Accepted (not blocking)  
+**Status:** Mitigated (override applied)  
 **Severity:** Medium  
-**Affected package:** `postcss` (via `next`)  
-**Current version in lockfile:** Transitive via Next.js
+**Affected package:** `postcss < 8.5.10` (via `next`)  
+**Current version in lockfile:** Forced to `>=8.5.10` by override
 
 **Details:**
-PostCSS has an XSS vulnerability in its CSS stringify output when `</style>` is not properly escaped. An attacker could inject a closing `</style>` tag to break out of a CSS context and execute JavaScript.
+PostCSS has an XSS vulnerability in its CSS stringify output when `</style>` is not properly escaped.
 
 **Why this is accepted:**
-PostCSS is a build-time tool in this project. It processes CSS at build/compile time, not at runtime from user input. The application does not dynamically process untrusted CSS through PostCSS. The vulnerability is only relevant if you are running PostCSS against attacker-controlled CSS strings in a production server context.
+PostCSS is a build-time tool. It processes CSS at build/compile time, not at runtime from user input. The application does not dynamically process untrusted CSS through PostCSS.
 
 **Remediation path:**
-This will be resolved automatically when Next.js updates its PostCSS dependency. No direct action required unless you start processing user-submitted CSS at runtime.
+Override forces `postcss >= 8.5.10`:
+
+```json
+"overrides": {
+  "postcss": "^8.5.10"
+}
+```
 
 ### esbuild — GHSA-67mh-4wv8-2f99
 
-**Status:** Accepted (not blocking)  
+**Status:** Mitigated (override applied)  
 **Severity:** Medium  
-**Affected package:** `esbuild` (via `drizzle-kit` → `tsx`)  
-**Current version in lockfile:** Transitive via `drizzle-kit`
+**Affected package:** `esbuild < 0.25.0` (via `drizzle-kit` → `tsx`)  
+**Current version in lockfile:** Forced to `>=0.25.0` by override
 
 **Details:**
-esbuild's development server did not properly validate the origin of incoming requests. Any website could send requests to the esbuild dev server and read the responses, potentially exposing source code or other build artifacts.
+esbuild's development server did not properly validate the origin of incoming requests. Any website could send requests to the esbuild dev server and read the responses.
 
 **Why this is accepted:**
-esbuild is only used as a TypeScript transpiler when running `drizzle-kit` CLI commands (via `tsx`). It is not running as a persistent development server exposed to the web. The vulnerability requires an actively running esbuild dev server listening on a network interface, which does not happen in this project's usage pattern.
+esbuild is only used as a TypeScript transpiler when running `drizzle-kit` CLI commands. It is not running as a persistent development server exposed to the web.
 
 **Remediation path:**
-This will be resolved when `drizzle-kit` or `tsx` updates its esbuild dependency. No direct action required.
+Override forces `esbuild >= 0.25.0`:
+
+```json
+"overrides": {
+  "esbuild": "^0.25.0"
+}
+```
 
 ### protobufjs — GHSA-66ff-xgx4-vchm (and related CVEs)
 
 **Status:** Mitigated (override applied)  
 **Severity:** High  
 **Affected package:** `protobufjs < 7.5.0` (via `promptfoo` → `@huggingface/transformers` → `onnxruntime-web`)  
-**Current version in lockfile:** `7.5.0` (forced by override)
+**Current version in lockfile:** Forced to `>=7.5.0` by override
 
 **Details:**
-`promptfoo` (the evaluation framework) transitively depends on `@huggingface/transformers` → `onnxruntime-web` → `protobufjs`. Multiple CVEs affect `protobufjs` versions below 7.5.0, including code injection, denial of service, and prototype pollution.
+Multiple CVEs affect `protobufjs` versions below 7.5.0, including code injection, denial of service, and prototype pollution.
 
 **Why this is accepted:**
-`promptfoo` is a **development-only** dependency used for automated RAG evaluation. It is not included in the production build or runtime. The vulnerability only exists in the local development environment when running evaluations.
+`promptfoo` is a development-only dependency. The vulnerability only exists in the local development environment when running evaluations.
 
 **Remediation path:**
-`package.json` includes an override forcing `protobufjs >= 7.5.0`:
+Override forces `protobufjs >= 7.5.0`:
 
 ```json
 "overrides": {
@@ -96,15 +164,71 @@ This will be resolved when `drizzle-kit` or `tsx` updates its esbuild dependency
 }
 ```
 
-Run `bun install` to apply. Verify with:
+### qs — CVE-2026-8723
 
-```bash
-grep 'protobufjs@' bun.lock
+**Status:** Mitigated (override applied)  
+**Severity:** Medium  
+**Affected package:** `qs < 6.15.2` (via `promptfoo` → `express`)  
+**Current version in lockfile:** Forced to `>=6.15.2` by override
+
+**Details:**
+`qs.stringify` crashes with TypeError on null/undefined entries in comma-format arrays when `encodeValuesOnly` is set, causing a remotely triggerable DoS.
+
+**Why this is accepted:**
+`express` is a transitive dependency of `promptfoo`, which is development-only. The vulnerable codepath requires specific `stringify` options unlikely to be triggered.
+
+**Remediation path:**
+Override forces `qs >= 6.15.2`:
+
+```json
+"overrides": {
+  "qs": "^6.15.2"
+}
 ```
 
-Expected output should show `protobufjs@7.5.x` or higher.
+### uuid — CVE-2026-41907
 
-**Note:** If `bun-scan` still flags `protobufjs` after the override, you may need to run `bun install --no-verify` or wait for `promptfoo` to update its transitive dependencies.
+**Status:** Mitigated (override applied)  
+**Severity:** Medium  
+**Affected package:** `uuid < 14.0.0` (via `langchain` → `@langchain/langgraph`)  
+**Current version in lockfile:** Forced to `>=14.0.0` by override
+
+**Details:**
+Missing buffer bounds check in v3/v5/v6 when `buf` is provided.
+
+**Why this is accepted:**
+The vulnerable codepath requires passing a custom buffer to uuid v3/v5/v6 functions, which this project does not do.
+
+**Remediation path:**
+Override forces `uuid >= 14.0.0`:
+
+```json
+"overrides": {
+  "uuid": "^14.0.0"
+}
+```
+
+### ws — CVE-2026-45736
+
+**Status:** Mitigated (override applied)  
+**Severity:** Medium  
+**Affected package:** `ws < 8.20.1` (via `promptfoo`)  
+**Current version in lockfile:** Forced to `>=8.20.1` by override
+
+**Details:**
+`websocket.close()` is vulnerable to uninitialized memory disclosure when a `TypedArray` is passed as the reason argument.
+
+**Why this is accepted:**
+`promptfoo` is development-only. The vulnerable codepath requires passing a `TypedArray` to `ws.close()`, which is not a standard usage pattern.
+
+**Remediation path:**
+Override forces `ws >= 8.20.1`:
+
+```json
+"overrides": {
+  "ws": "^8.20.1"
+}
+```
 
 ## Reporting a Vulnerability
 

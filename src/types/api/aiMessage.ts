@@ -1,6 +1,6 @@
 import { InferUITools, UIDataTypes, UIMessage } from "ai";
 import z from "zod";
-import { aiTools } from "@/lib/helpers/aiTools";
+import type { aiTools } from "@/lib/helpers/aiTools";
 
 // Infer the types from the tool set
 type MyUITools = InferUITools<typeof aiTools>;
