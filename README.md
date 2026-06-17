@@ -22,7 +22,18 @@ bun i
 
 ### 2. Set up PostgreSQL
 
-Install PostgreSQL and the pgvector extension:
+**Option A: Docker Compose** (cross-platform, recommended):
+
+```bash
+# Start PostgreSQL container
+docker compose up -d
+
+# Create the database and enable pgvector
+docker compose exec postgres psql -U postgres -c "CREATE DATABASE \"unlearn-rag-course\";"
+docker compose exec postgres psql -U postgres -d unlearn-rag-course -c "CREATE EXTENSION IF NOT EXISTS vector;"
+```
+
+**Option B: Local installation:**
 
 ```bash
 # macOS with Homebrew
@@ -37,6 +48,18 @@ createdb unlearn-rag-course
 
 # Enable the pgvector extension
 psql -d unlearn-rag-course -c "CREATE EXTENSION IF NOT EXISTS vector;"
+```
+
+```bash
+# Ubuntu/Debian
+sudo apt install postgresql-18 postgresql-18-pgvector
+
+# Start PostgreSQL
+sudo systemctl start postgresql
+
+# Create the database and enable pgvector
+sudo -u postgres createdb unlearn-rag-course
+sudo -u postgres psql -d unlearn-rag-course -c "CREATE EXTENSION IF NOT EXISTS vector;"
 ```
 
 ### 3. Configure environment variables
@@ -60,6 +83,16 @@ RERANK_MODEL=rerank-2.5
 VOYAGE_API_KEY=your_voyage_api_key_here
 ```
 
+For Unsloth/OpenAI-compatible providers, add:
+
+```bash
+AI_PROVIDER=unsloth
+AI_PROVIDER_BASE_URL=http://localhost:8000
+AI_API_KEY=your_api_key_here  # Optional, depends on server config
+```
+
+**Unsloth Model Recommendation:** For best results, use `Qwen3.6-35B-A3B-GGUF` with Q6 quantization. It's overkill but delivers the most accurate and detailed responses.
+
 **Note:** `VOYAGE_API_KEY` is required for the reranking stage even if you use `EMBEDDING_PROVIDER=ollama` for embeddings. The reranker uses Voyage AI's `rerank-2.5` model to reorder results from the initial hybrid search.
 
 **Available AI Providers:**
@@ -68,6 +101,7 @@ VOYAGE_API_KEY=your_voyage_api_key_here
 |----------|--------|------------------|
 | **Ollama** | Any local model (e.g., `qwen2.5:14b`) | No — runs locally |
 | **LM Studio** | Any local model (e.g., `qwen2.5-14b-instruct-mlx`) | No — runs locally |
+| **Unsloth** | Any OpenAI-compatible model (e.g., `unsloth/Qwen3-8B-unsloth-bnb-4bit`) | Optional — depends on server config |
 | **Groq** | `llama-3.3-70b-versatile` | Yes — [groq.com](https://groq.com) |
 | **DeepSeek** | `deepseek-v4-flash` | Yes — [deepseek.com](https://deepseek.com) |
 
@@ -254,8 +288,8 @@ Database scripts live in `scripts/db/`. Configuration is in [`drizzle.config.ts`
 ## Development
 
 ### Architecture Note
-- **AI configuration** (`src/config/`) — Centralized AI provider and model configuration with support for multiple providers (Ollama, Groq, DeepSeek), embedding providers (Voyage AI, Ollama), and reranking (Voyage AI).
-- **AI providers** (`src/lib/aiProviders/`) — Provider-specific implementations (e.g., Ollama and LM Studio via OpenAI-compatible API).
+- **AI configuration** (`src/config/`) — Centralized AI provider and model configuration with support for multiple providers (Ollama, LM Studio, Unsloth, Groq, DeepSeek), embedding providers (Voyage AI, Ollama), and reranking (Voyage AI).
+- **AI providers** (`src/lib/aiProviders/`) — Provider-specific implementations (e.g., Ollama, LM Studio, and Unsloth via OpenAI-compatible API).
 - **Server logic** (`src/lib/server/`) — Pure functions for embedding generation, hybrid search (vector + BM25), reranking, context generation, and RAG. Used by both CLI scripts and the Next.js API route.
 - **3-stage retrieval pipeline** (`src/lib/server/search.ts`):
   1. **Vector + BM25 hybrid search** — Combines pgvector similarity search with PostgreSQL full-text search
@@ -301,7 +335,7 @@ For detailed usage, options, and prerequisites for each script, see [`scripts/RE
 - **Database**: PostgreSQL + [Drizzle ORM](https://orm.drizzle.team)
 - **Vector Search**: [pgvector](https://github.com/pgvector/pgvector) + BM25 full-text search (hybrid search) with [Voyage AI reranking](https://www.voyageai.com)
 - **Embeddings**: [Voyage AI](https://www.voyageai.com) or local [Ollama](https://ollama.com)
-- **AI/LLM**: [Vercel AI SDK](https://sdk.vercel.ai) with [Groq](https://groq.com), [DeepSeek](https://deepseek.com), [Ollama](https://ollama.com), or [LM Studio](https://lmstudio.ai)
+- **AI/LLM**: [Vercel AI SDK](https://sdk.vercel.ai) with [Groq](https://groq.com), [DeepSeek](https://deepseek.com), [Ollama](https://ollama.com), [LM Studio](https://lmstudio.ai), or [Unsloth](https://unsloth.ai)
 - **Runtime**: [Bun](https://bun.sh)
 - **Linting**: [Biome](https://biomejs.dev)
 
@@ -326,6 +360,7 @@ This project supports multiple AI providers with different rate limits:
 | **DeepSeek** | `deepseek-v4-flash` | Check your plan | Check your plan | Check your plan | Higher limits than Groq free tier |
 | **Voyage AI** | `voyage-4-large` | Check your plan | Check your plan | Check your plan | Embeddings + reranking |
 | **Ollama** | Any local model | Unlimited | Unlimited | N/A | Runs locally, no rate limits |
+| **Unsloth** | Any model | Depends on server | Depends on server | N/A | OpenAI-compatible API |
 
 **Groq free tier limitation:** The 12,000 tokens/minute limit can be hit during `db:seed` or `db:generate-contexts` since these process many chunks in sequence. If you hit a `429` error, either:
 - Wait a minute and retry

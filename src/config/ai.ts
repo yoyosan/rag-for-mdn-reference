@@ -4,6 +4,7 @@ import { LanguageModel } from "ai";
 import { VoyageAIClient } from "voyageai";
 import { lmstudioChat } from "@/lib/aiProviders/lmstudio";
 import { ollama } from "@/lib/aiProviders/ollama";
+import { unsloth } from "@/lib/aiProviders/unsloth";
 import { ollamaModel } from "@/lib/shared/constants";
 import { AIProviders, AIProviderType, Embedder } from "@/types/aiProviders";
 
@@ -42,6 +43,15 @@ export function getAIModel(modelOverride?: string): LanguageModel {
 
 		case "ollama":
 			return ollama(modelName);
+
+		case "unsloth":
+			if (!process.env.AI_API_KEY || !process.env.AI_PROVIDER_BASE_URL) {
+				throw new Error(
+					"AI_API_KEY and AI_PROVIDER_BASE_URL are required in .env.local",
+				);
+			}
+
+			return unsloth(modelName);
 
 		default:
 			throw new Error(`Unknown provider: ${PROVIDER}`);

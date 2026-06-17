@@ -16,13 +16,14 @@ All known transitive vulnerabilities are mitigated via `package.json` overrides:
 "overrides": {
   "postcss": "^8.5.10",
   "uuid": "^14.0.0",
-  "hono": "^4.12.21",
+  "hono": ">=4.12.25",
   "axios": "^1.8.0",
   "langsmith": ">=0.6.0",
-  "protobufjs": ">=7.5.0",
+  "protobufjs": ">=8.4.1",
   "qs": "^6.15.2",
-  "esbuild": "^0.25.0",
-  "ws": "^8.20.1"
+  "esbuild": ">=0.28.1",
+  "ws": ">=8.21.0",
+  "form-data": ">=4.0.6"
 }
 ```
 
@@ -56,8 +57,8 @@ Override forces `axios >= 1.8.0`:
 
 **Status:** Mitigated (override applied)  
 **Severity:** Medium  
-**Affected package:** `hono < 4.12.21` (via `promptfoo`)  
-**Current version in lockfile:** Forced to `>=4.12.21` by override
+**Affected package:** `hono < 4.12.25` (via `promptfoo`)  
+**Current version in lockfile:** Forced to `>=4.12.25` by override
 
 **Details:**
 Multiple CVEs: JWT middleware accepts any Authorization scheme, cookie helper doesn't sanitize sameSite/priority, app.mount() strips prefix using undecoded path, IP restriction bypasses for non-canonical IPv6.
@@ -66,11 +67,11 @@ Multiple CVEs: JWT middleware accepts any Authorization scheme, cookie helper do
 `promptfoo` is development-only. Hono is not used as a runtime server in this project.
 
 **Remediation path:**
-Override forces `hono >= 4.12.21`:
+Override forces `hono >= 4.12.25`:
 
 ```json
 "overrides": {
-  "hono": "^4.12.21"
+  "hono": ">=4.12.25"
 }
 ```
 
@@ -124,8 +125,8 @@ Override forces `postcss >= 8.5.10`:
 
 **Status:** Mitigated (override applied)  
 **Severity:** Medium  
-**Affected package:** `esbuild < 0.25.0` (via `drizzle-kit` → `tsx`)  
-**Current version in lockfile:** Forced to `>=0.25.0` by override
+**Affected package:** `esbuild < 0.28.1` (via `drizzle-kit` → `tsx`)  
+**Current version in lockfile:** Forced to `>=0.28.1` by override
 
 **Details:**
 esbuild's development server did not properly validate the origin of incoming requests. Any website could send requests to the esbuild dev server and read the responses.
@@ -134,11 +135,11 @@ esbuild's development server did not properly validate the origin of incoming re
 esbuild is only used as a TypeScript transpiler when running `drizzle-kit` CLI commands. It is not running as a persistent development server exposed to the web.
 
 **Remediation path:**
-Override forces `esbuild >= 0.25.0`:
+Override forces `esbuild >= 0.28.1`:
 
 ```json
 "overrides": {
-  "esbuild": "^0.25.0"
+  "esbuild": ">=0.28.1"
 }
 ```
 
@@ -146,21 +147,21 @@ Override forces `esbuild >= 0.25.0`:
 
 **Status:** Mitigated (override applied)  
 **Severity:** High  
-**Affected package:** `protobufjs < 7.5.0` (via `promptfoo` → `@huggingface/transformers` → `onnxruntime-web`)  
-**Current version in lockfile:** Forced to `>=7.5.0` by override
+**Affected package:** `protobufjs < 8.4.1` (via `promptfoo` → `@huggingface/transformers` → `onnxruntime-web`)  
+**Current version in lockfile:** Forced to `>=8.4.1` by override
 
 **Details:**
-Multiple CVEs affect `protobufjs` versions below 7.5.0, including code injection, denial of service, and prototype pollution.
+Multiple CVEs affect `protobufjs` versions below 8.4.1, including code injection, denial of service, and prototype pollution.
 
 **Why this is accepted:**
 `promptfoo` is a development-only dependency. The vulnerability only exists in the local development environment when running evaluations.
 
 **Remediation path:**
-Override forces `protobufjs >= 7.5.0`:
+Override forces `protobufjs >= 8.4.1`:
 
 ```json
 "overrides": {
-  "protobufjs": ">=7.5.0"
+  "protobufjs": ">=8.4.1"
 }
 ```
 
@@ -212,8 +213,8 @@ Override forces `uuid >= 14.0.0`:
 
 **Status:** Mitigated (override applied)  
 **Severity:** Medium  
-**Affected package:** `ws < 8.20.1` (via `promptfoo`)  
-**Current version in lockfile:** Forced to `>=8.20.1` by override
+**Affected package:** `ws < 8.21.0` (via `promptfoo`)  
+**Current version in lockfile:** Forced to `>=8.21.0` by override
 
 **Details:**
 `websocket.close()` is vulnerable to uninitialized memory disclosure when a `TypedArray` is passed as the reason argument.
@@ -222,11 +223,33 @@ Override forces `uuid >= 14.0.0`:
 `promptfoo` is development-only. The vulnerable codepath requires passing a `TypedArray` to `ws.close()`, which is not a standard usage pattern.
 
 **Remediation path:**
-Override forces `ws >= 8.20.1`:
+Override forces `ws >= 8.21.0`:
 
 ```json
 "overrides": {
-  "ws": "^8.20.1"
+  "ws": ">=8.21.0"
+}
+```
+
+### form-data — CVE-2026-XXXXX
+
+**Status:** Mitigated (override applied)  
+**Severity:** Medium  
+**Affected package:** `form-data < 4.0.6`  
+**Current version in lockfile:** Forced to `>=4.0.6` by override
+
+**Details:**
+Older versions of form-data have potential security issues with how form data is serialized and boundary handling.
+
+**Why this is accepted:**
+This is a transitive dependency. The override ensures a secure version is used.
+
+**Remediation path:**
+Override forces `form-data >= 4.0.6`:
+
+```json
+"overrides": {
+  "form-data": ">=4.0.6"
 }
 ```
 
