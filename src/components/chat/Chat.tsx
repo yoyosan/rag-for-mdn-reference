@@ -13,7 +13,7 @@ import { ExportDialog } from "@/components/ExportDialog";
 import { getStorageItem } from "@/lib/client/localStorage";
 import { getErrorDisplay } from "@/lib/helpers/general";
 import { AppUIMessage } from "@/types/api/aiMessage";
-import { ChatMessage } from "@/types/web/message";
+import { ChatMessage, ChatSource } from "@/types/web/message";
 
 const initialPrompts = [
 	"What is the difference between let and var in JavaScript?",
@@ -66,6 +66,21 @@ export function Chat() {
 				(part) => part.type === "text" && part.state === "done",
 			);
 
+			let sources: ChatSource[] = [];
+			let sourceError: string | undefined;
+			if (isDone) {
+				const toolPart = msg.parts?.find(
+					(p) => p?.type === "tool-queryKnowledgeBase",
+				);
+				if (toolPart?.state === "output-available") {
+					if (Array.isArray(toolPart.output)) {
+						sources = toolPart.output;
+					} else if (typeof toolPart.output === "string") {
+						sourceError = toolPart.output;
+					}
+				}
+			}
+
 			return {
 				id: msg.id,
 				type: msg.role === "user" ? "user" : "ai",
@@ -77,14 +92,8 @@ export function Chat() {
 				timestamp: msg.metadata?.createdAt
 					? new Date(msg.metadata.createdAt)
 					: null,
-				sources: isDone
-					? msg.parts?.find((part) => {
-							return (
-								part?.type === "tool-queryKnowledgeBase" &&
-								part?.state === "output-available"
-							);
-						})?.output || []
-					: [],
+				sources,
+				sourceError,
 			};
 		});
 	}, [messages]);
@@ -198,7 +207,8 @@ export function Chat() {
 								{!hasAPIKeysConf && (
 									<div className="mb-6 p-4 rounded-lg bg-yellow-900/30 border border-yellow-700">
 										<p className="text-yellow-200 text-sm mb-2">
-											<strong>Setup required:</strong> Configure your AI provider and API keys to start chatting.
+											<strong>Setup required:</strong> Configure your AI
+											provider and API keys to start chatting.
 										</p>
 										<a
 											href="/settings"
@@ -224,7 +234,18 @@ export function Chat() {
 						</div>
 					) : (
 						chatMessages.map((message) => (
-							<ChatMessageComponent key={message.id} message={message} />
+							<div key={message.id}>
+								<ChatMessageComponent message={message} />
+								{message.sourceError && (
+									<div className="flex gap-4 justify-start">
+										<div className="shrink-0 w-8 h-8" />
+										<div className="max-w-4xl w-full p-4 flex mt-4 items-center gap-2 text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
+											<span>⚠️</span>
+											<span>{message.sourceError}</span>
+										</div>
+									</div>
+								)}
+							</div>
 						))
 					)}
 					<div

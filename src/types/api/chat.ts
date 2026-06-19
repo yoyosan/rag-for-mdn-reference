@@ -27,5 +27,6 @@ export const chatRequestSchema = z.object({
 	messages: z
 		.array(uiMessageSchema)
 		.min(1)
+		.max(50)
 		.transform((s) => s as AppUIMessage[]),
 });

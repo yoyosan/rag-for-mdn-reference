@@ -31,9 +31,9 @@ auto = "disable"
 
 # 8. Security scanner (optional but recommended).
 #    Install one first: `bun add -d @your-scanner/bun-security-scanner`
-[install.security]
-scanner = "bun-scan"
-severityThreshold = "high"
+# [install.security]
+# scanner = "bun-scan"
+# severityThreshold = "high"
 
 # --- Registry Configuration ---
 # 9. Scoped registry: Force internal scopes to your private registry.

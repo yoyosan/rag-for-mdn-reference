@@ -30,7 +30,8 @@
 			},
 			"correctness": {
 				"noNextAsyncClientComponent": "warn",
-				"noUnusedVariables": "error"
+				"noUnusedVariables": "error",
+				"noUnusedImports": "error"
 			},
 			"performance": {
 				"noImgElement": "warn",

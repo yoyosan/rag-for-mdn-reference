@@ -1,0 +1,1 @@
+ALTER TABLE "rate_limits" ALTER COLUMN "window_start" SET DATA TYPE bigint;

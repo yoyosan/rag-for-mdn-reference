@@ -10,7 +10,7 @@ const aiToolInputSchema = z.object({
 	message: z
 		.string()
 		.describe("The question or comment to query the context documents about."),
-	limit: z.number().optional().default(5),
+	limit: z.number().min(1).max(20).optional().default(5),
 });
 
 export type AIToolsParams = {
@@ -26,7 +26,7 @@ export type AITools = {
 		execute: (input: {
 			message: string;
 			limit: number;
-		}) => Promise<ChatSource[]>;
+		}) => Promise<ChatSource[] | string>;
 	};
 };
 
@@ -39,18 +39,25 @@ export const createAITools = ({
 		description: "Query the provided context documents",
 		inputSchema: aiToolInputSchema,
 		execute: async ({ message, limit }: { message: string; limit: number }) => {
-			const retrievedChunks = await performSemanticSearch(message, limit, {
-				embedder,
-				reranker,
-				embedModel,
-			});
+			try {
+				const retrievedChunks = await performSemanticSearch(message, limit, {
+					embedder,
+					reranker,
+					embedModel,
+				});
 
-			return transformChunksForFrontend(retrievedChunks);
+				return transformChunksForFrontend(retrievedChunks);
+			} catch (error) {
+				console.error("queryKnowledgeBase error:", error);
+				return "Search is unavailable because the API key is invalid. Please check your Settings.";
+			}
 		},
 	},
 });
 
-export function transformChunksForFrontend(chunks: SearchResult[]) {
+export function transformChunksForFrontend(
+	chunks: SearchResult[],
+): ChatSource[] {
 	return chunks.map((source, index) => ({
 		id: String(index + 1),
 		citationNumber: index + 1,

@@ -12,4 +12,5 @@ export interface ChatMessage {
 	timestamp: Date | null;
 	sources?: ChatSource[];
 	isStreaming?: boolean;
+	sourceError?: string;
 }

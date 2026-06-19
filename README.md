@@ -172,7 +172,7 @@ AI_MODEL=qwen2.5:14b
 bun db:migrate
 ```
 
-This creates all tables: `documents`, `chunks`, `conversations`, `messages`, and `message_sources`.
+This creates all tables: `documents`, `chunks`, `conversations`, `messages`, `message_sources`, and `rate_limits`.
 
 ### 5. Generate chunk data
 
@@ -273,6 +273,7 @@ The database uses **branded types** for type-safe IDs. Primary keys use either U
 | `conversations` | Chat conversations |
 | `messages` | Chat messages (user and AI) |
 | `message_sources` | Links between AI messages and source chunks (citations) |
+| `rate_limits` | IP-based rate limiting for the chat API (requests per minute per IP) |
 
 ### Database commands
 
@@ -367,6 +368,12 @@ For detailed usage, options, and prerequisites for each script, see [`scripts/RE
 - **Dependency advisories**: See [SECURITY.md](./SECURITY.md) for current dependency vulnerability status.
 
 ## Rate Limits
+
+### Application Rate Limiting
+
+The chat API enforces **20 requests per minute per IP**. This is applied at the application level before the request reaches the AI provider. If you exceed this limit, you'll receive a `429 Too Many Requests` response. Rate limit state is stored in the `rate_limits` database table and resets each minute.
+
+### Provider Rate Limits
 
 This project supports multiple AI providers with different rate limits:
 

@@ -1,4 +1,3 @@
-import { ProviderResponse } from "promptfoo";
 import z from "zod";
 
 export const cachedResultSchema = z.object({

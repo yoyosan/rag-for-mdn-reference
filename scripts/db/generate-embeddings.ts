@@ -1,5 +1,5 @@
 import { isNull } from "drizzle-orm";
-import { db, pool } from "@/db";
+import { db } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
 import { runScript } from "@/lib/scripts/utils";
 import { ChunkRow, generateEmbeddingsForChunks } from "@/lib/server/embeddings";
