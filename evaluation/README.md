@@ -89,7 +89,7 @@ tests:
 
 ### Model-Specific Results
 
-Context adherence tests (02) use `context-faithfulness` assertions where **the grading model is the same as the RAG model** (both use `getAIModel()`). This is intentional — the eval should reflect what users actually experience in the interface and CLI.
+Context adherence tests (02) use `context-faithfulness` assertions where **the grading model is the same as the RAG model** (both use `getLLM()`). This is intentional — the eval should reflect what users actually experience in the interface and CLI.
 
 However, this means eval results are tied to a specific provider/model combination. When you switch providers (e.g., Ollama → LM Studio):
 - Different models format output differently (markdown links, list structure, etc.)

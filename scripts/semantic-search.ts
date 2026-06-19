@@ -1,3 +1,4 @@
+import { getEmbedder, getReranker, resolveEmbeddingModel } from "@/config/ai";
 import { runScript } from "@/lib/scripts/utils";
 import { performSemanticSearch } from "@/lib/server/search";
 import { SearchResult } from "@/types/semanticSearch";
@@ -107,8 +108,15 @@ async function main(): Promise<void> {
 
 	console.log("🚀 Starting semantic search...\n");
 
-	await performSemanticSearch(question, limit, (results) =>
-		displayResults(results, question),
+	await performSemanticSearch(
+		question,
+		limit,
+		{
+			embedder: getEmbedder(),
+			reranker: getReranker(),
+			embedModel: resolveEmbeddingModel(),
+		},
+		(results) => displayResults(results, question),
 	);
 }
 

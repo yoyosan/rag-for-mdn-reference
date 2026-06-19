@@ -1,5 +1,5 @@
 import { generateText } from "ai";
-import { getAIModel } from "@/config/ai";
+import { getLLM } from "@/config/ai";
 
 export async function generateContextForChunk(
 	wholeDocument: string,
@@ -16,7 +16,7 @@ for the purposes of improving search retrieval of the chunk. Answer only with th
 context and nothing else.`;
 
 	const { text } = await generateText({
-		model: getAIModel(),
+		model: getLLM(),
 		prompt,
 		temperature: 0.1,
 	});

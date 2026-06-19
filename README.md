@@ -104,6 +104,8 @@ AI_API_KEY=your_api_key_here  # Optional, depends on server config
 | **Unsloth** | Any OpenAI-compatible model (e.g., `unsloth/Qwen3-8B-unsloth-bnb-4bit`) | Optional — depends on server config |
 | **Groq** | `llama-3.3-70b-versatile` | Yes — [groq.com](https://groq.com) |
 | **DeepSeek** | `deepseek-v4-flash` | Yes — [deepseek.com](https://deepseek.com) |
+| **Anthropic** | Any Anthropic model (e.g., `claude-sonnet-4-20250514`) | Yes — [console.anthropic.com](https://console.anthropic.com) |
+| **OpenAI** | Any OpenAI model (e.g., `gpt-4o`) | Yes — [platform.openai.com](https://platform.openai.com) |
 
 **Available Embedding Providers:**
 
@@ -240,6 +242,20 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### 11. Configure web interface settings
+
+Before using the chat interface, you need to configure your AI provider and API keys:
+
+1. Click the **Settings** icon in the chat header
+2. Select your AI provider (Groq, DeepSeek, Anthropic, OpenAI, etc.)
+3. Enter your API key for the selected provider
+4. Enter your AI model name (e.g., `llama-3.3-70b-versatile` for Groq)
+5. Enter your Voyage API key (required for reranking)
+6. Enter your embedding model (e.g., `voyage-4-large`)
+7. Click **Save**
+
+Your settings are stored locally in the browser and used for all chat queries. The CLI scripts (`bun rag-query`, `bun semantic-search`) use the `.env.local` configuration instead.
+
 ## Database
 
 This project uses [Drizzle ORM](https://orm.drizzle.team) with PostgreSQL.
@@ -288,7 +304,7 @@ Database scripts live in `scripts/db/`. Configuration is in [`drizzle.config.ts`
 ## Development
 
 ### Architecture Note
-- **AI configuration** (`src/config/`) — Centralized AI provider and model configuration with support for multiple providers (Ollama, LM Studio, Unsloth, Groq, DeepSeek), embedding providers (Voyage AI, Ollama), and reranking (Voyage AI).
+- **AI configuration** (`src/config/`) — Centralized AI provider and model configuration with support for multiple providers (Ollama, LM Studio, Unsloth, Groq, DeepSeek, Anthropic, OpenAI), embedding providers (Voyage AI, Ollama), and reranking (Voyage AI). User settings from the UI are passed via request headers and override env defaults.
 - **AI providers** (`src/lib/aiProviders/`) — Provider-specific implementations (e.g., Ollama, LM Studio, and Unsloth via OpenAI-compatible API).
 - **Server logic** (`src/lib/server/`) — Pure functions for embedding generation, hybrid search (vector + BM25), reranking, context generation, and RAG. Used by both CLI scripts and the Next.js API route.
 - **3-stage retrieval pipeline** (`src/lib/server/search.ts`):
@@ -296,7 +312,7 @@ Database scripts live in `scripts/db/`. Configuration is in [`drizzle.config.ts`
   2. **Reciprocal Rank Fusion (RRF)** — Merges results from both search methods into a single ranked list
   3. **Voyage reranking** — Reorders fused results using Voyage AI's `rerank-2.5` model for final relevance scoring (gracefully falls back to RRF order on failure)
 - **Shared constants** (`src/lib/shared/`) — Configuration like batch sizes and default models, shared between server and client.
-- **API route** (`src/app/api/chat/`) — Next.js route handler that validates requests and orchestrates the RAG pipeline with tool-based knowledge base access.
+- **API route** (`src/app/api/chat/`) — Next.js route handler that validates requests and orchestrates the RAG pipeline with tool-based knowledge base access. Reads user AI settings from request headers.
 - **CLI scripts** (`scripts/`, `scripts/db/`) — Thin wrappers around `src/lib/server/` functions for command-line usage. General scripts in `scripts/`, database-specific scripts in `scripts/db/`.
 
 ### Available Scripts
@@ -335,7 +351,7 @@ For detailed usage, options, and prerequisites for each script, see [`scripts/RE
 - **Database**: PostgreSQL + [Drizzle ORM](https://orm.drizzle.team)
 - **Vector Search**: [pgvector](https://github.com/pgvector/pgvector) + BM25 full-text search (hybrid search) with [Voyage AI reranking](https://www.voyageai.com)
 - **Embeddings**: [Voyage AI](https://www.voyageai.com) or local [Ollama](https://ollama.com)
-- **AI/LLM**: [Vercel AI SDK](https://sdk.vercel.ai) with [Groq](https://groq.com), [DeepSeek](https://deepseek.com), [Ollama](https://ollama.com), [LM Studio](https://lmstudio.ai), or [Unsloth](https://unsloth.ai)
+- **AI/LLM**: [Vercel AI SDK](https://sdk.vercel.ai) with [Groq](https://groq.com), [DeepSeek](https://deepseek.com), [Anthropic](https://www.anthropic.com), [OpenAI](https://openai.com), [Ollama](https://ollama.com), [LM Studio](https://lmstudio.ai), or [Unsloth](https://unsloth.ai)
 - **Runtime**: [Bun](https://bun.sh)
 - **Linting**: [Biome](https://biomejs.dev)
 

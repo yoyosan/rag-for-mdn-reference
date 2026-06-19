@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { embeddingModel, getEmbeddingModel } from "@/config/ai";
+import { getEmbedder, resolveEmbeddingModel } from "@/config/ai";
 import { db } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
 import { Chunk } from "@/types/entities/chunk";
@@ -10,10 +10,10 @@ export async function generateEmbeddingsForChunks(
 	chunks: ChunkRow[],
 ): Promise<void> {
 	const texts = chunks.map((chunk) => chunk.content);
-	const embedder = getEmbeddingModel();
+	const embedder = getEmbedder();
 	const response = await embedder.embed({
 		input: texts,
-		model: embeddingModel,
+		model: resolveEmbeddingModel(),
 		inputType: "document",
 	});
 
@@ -47,10 +47,10 @@ export async function generateEmbeddingsForTexts(
 	texts: string[],
 ): Promise<number[][]> {
 	try {
-		const embedder = getEmbeddingModel();
+		const embedder = getEmbedder();
 		const response = await embedder.embed({
 			input: texts,
-			model: embeddingModel,
+			model: resolveEmbeddingModel(),
 			inputType: "document",
 		});
 

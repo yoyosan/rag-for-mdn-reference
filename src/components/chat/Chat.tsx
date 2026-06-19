@@ -10,6 +10,7 @@ import { ChatHeader } from "@/components/chat/Header";
 import { ChatMessage as ChatMessageComponent } from "@/components/chat/Message";
 import { ChatMessageLoading } from "@/components/chat/MessageLoading";
 import { ExportDialog } from "@/components/ExportDialog";
+import { getStorageItem } from "@/lib/client/localStorage";
 import { getErrorDisplay } from "@/lib/helpers/general";
 import { AppUIMessage } from "@/types/api/aiMessage";
 import { ChatMessage } from "@/types/web/message";
@@ -26,11 +27,33 @@ export function Chat() {
 	const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const [hasAPIKeysConf, setHasAPIKeysConf] = useState(false);
+	const [clientReady, setClientReady] = useState(false);
+
+	useEffect(() => {
+		if (
+			getStorageItem("ai-provider") &&
+			getStorageItem("api-key") &&
+			getStorageItem("ai-model") &&
+			getStorageItem("embed-model") &&
+			getStorageItem("voyage-api-key")
+		) {
+			setHasAPIKeysConf(true);
+		}
+		setClientReady(true);
+	}, []);
 
 	const { messages, sendMessage, status, setMessages, error } =
 		useChat<AppUIMessage>({
 			transport: new DefaultChatTransport({
 				api: "/api/chat",
+				headers: {
+					"x-ai-api-provider": getStorageItem("ai-provider") || "",
+					"x-ai-api-key": getStorageItem("api-key") || "",
+					"x-ai-model": getStorageItem("ai-model") || "",
+					"x-ai-embed-model": getStorageItem("embed-model") || "",
+					"x-ai-voyage-api-key": getStorageItem("voyage-api-key") || "",
+				},
 			}),
 		});
 	const isReady = status === "ready";
@@ -134,6 +157,14 @@ export function Chat() {
 		setIsExportDialogOpen(true);
 	};
 
+	if (!clientReady) {
+		return (
+			<div className="flex h-screen items-center justify-center bg-gray-950">
+				<div className="animate-pulse text-gray-400">Loading...</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className="flex h-screen bg-gray-950 text-white">
 			{/* Main Chat Area */}
@@ -146,6 +177,7 @@ export function Chat() {
 				{/* Header */}
 				<ChatHeader
 					hasMessages={chatMessages.length > 0}
+					hasAPIKeysConf={hasAPIKeysConf}
 					clearChat={clearChat}
 					isContextPanelOpen={isContextPanelOpen}
 					toggleContextPanel={toggleContextPanel}
@@ -163,12 +195,26 @@ export function Chat() {
 								<p className="text-gray-400 mb-6">
 									Ask me anything about web development, JavaScript on MDN.
 								</p>
+								{!hasAPIKeysConf && (
+									<div className="mb-6 p-4 rounded-lg bg-yellow-900/30 border border-yellow-700">
+										<p className="text-yellow-200 text-sm mb-2">
+											<strong>Setup required:</strong> Configure your AI provider and API keys to start chatting.
+										</p>
+										<a
+											href="/settings"
+											className="inline-block px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm transition-colors"
+										>
+											Go to Settings
+										</a>
+									</div>
+								)}
 								<div className="grid grid-cols-1 gap-2 text-sm">
 									{initialPrompts.map((prompt) => (
 										<button
 											key={prompt}
 											onClick={() => setInput(prompt)}
-											className="p-3 text-left rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-gray-200"
+											disabled={!hasAPIKeysConf}
+											className="p-3 text-left rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-gray-200 disabled:text-gray-700 disabled:cursor-not-allowed disabled:hover:bg-transparent"
 										>
 											{prompt}
 										</button>
@@ -215,11 +261,11 @@ export function Chat() {
 								placeholder="Ask me anything about MDN JavaScript ..."
 								className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 pr-12 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none min-h-12.5 max-h-32"
 								rows={1}
-								disabled={!isReady}
+								disabled={!isReady || !hasAPIKeysConf}
 							/>
 							<button
 								type="submit"
-								disabled={!input.trim() || !isReady}
+								disabled={!input.trim() || !isReady || !hasAPIKeysConf}
 								className="absolute right-2 top-6.25 -translate-y-1/2 p-2 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
 								aria-label="Send message"
 							>

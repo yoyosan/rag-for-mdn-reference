@@ -1,8 +1,10 @@
-import { getRerankModel, rerankModel } from "@/config/ai";
+import { VoyageAIClient } from "voyageai";
+import { getReranker, rerankModel } from "@/config/ai";
 
 export async function rerankResults<T extends { content: string }>(
 	query: string,
 	results: T[],
+	reranker?: VoyageAIClient,
 ): Promise<T[]> {
 	if (results.length === 0) {
 		return results;
@@ -11,8 +13,8 @@ export async function rerankResults<T extends { content: string }>(
 	const similarityThreshold = 0.5;
 	const documents = results.map((result) => result.content);
 
-	const reranker = getRerankModel();
-	const result = await reranker.rerank({
+	const resolvedReranker = reranker ?? getReranker();
+	const result = await resolvedReranker.rerank({
 		query,
 		documents,
 		model: rerankModel,

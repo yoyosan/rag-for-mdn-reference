@@ -1,16 +1,17 @@
-import { deepseek } from "@ai-sdk/deepseek";
-import { groq } from "@ai-sdk/groq";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { createDeepSeek } from "@ai-sdk/deepseek";
+import { createGroq } from "@ai-sdk/groq";
+import { createOpenAI } from "@ai-sdk/openai";
 import { LanguageModel } from "ai";
 import { VoyageAIClient } from "voyageai";
 import { lmstudioChat } from "@/lib/aiProviders/lmstudio";
 import { ollama } from "@/lib/aiProviders/ollama";
 import { unsloth } from "@/lib/aiProviders/unsloth";
-import { ollamaModel } from "@/lib/shared/constants";
 import { AIProviders, AIProviderType, Embedder } from "@/types/aiProviders";
 
-// AI/LLM model and provider
+// AI/LLM provider and model
 
-const rawProvider: string = process.env.AI_PROVIDER || AIProviders[0];
+const rawProvider: string = process.env.AI_PROVIDER || "groq";
 if (!AIProviders.includes(rawProvider as AIProviderType)) {
 	throw new Error(
 		`Invalid AI_PROVIDER: ${rawProvider}. Must be one of: ${AIProviders.join(", ")}`,
@@ -19,42 +20,79 @@ if (!AIProviders.includes(rawProvider as AIProviderType)) {
 const PROVIDER: AIProviderType = rawProvider as AIProviderType;
 export const aiProvider: AIProviderType = PROVIDER;
 
-const MODEL_NAME: string = process.env.AI_MODEL || ollamaModel;
+const MODEL_NAME: string = process.env.AI_MODEL || "llama-3.3-70b-versatile";
 export const aiModel: string = MODEL_NAME;
 
-export function getAIModel(modelOverride?: string): LanguageModel {
-	const modelName = modelOverride || MODEL_NAME;
+export function getLLM(
+	userProvider?: AIProviderType | null,
+	userApiKey?: string | null,
+	userModel?: string | null,
+): LanguageModel {
+	const aiModel = userModel || MODEL_NAME;
+	const aiProvider = userProvider || PROVIDER;
+	let aiApiKey = userApiKey || process.env.AI_API_KEY;
 
-	switch (PROVIDER) {
-		case "groq":
-			if (!process.env.GROQ_API_KEY) {
-				throw new Error("GROQ_API_KEY is required in .env.local");
-			}
-
-			return groq(modelName);
-		case "deepseek":
-			if (!process.env.DEEPSEEK_API_KEY) {
-				throw new Error("DEEPSEEK_API_KEY is required in .env.local");
-			}
-
-			return deepseek(modelName);
-		case "lmstudio":
-			return lmstudioChat(modelName);
-
-		case "ollama":
-			return ollama(modelName);
-
-		case "unsloth":
-			if (!process.env.AI_API_KEY || !process.env.AI_PROVIDER_BASE_URL) {
+	switch (aiProvider) {
+		case "anthropic":
+			aiApiKey = aiApiKey || process.env.ANTHROPIC_API_KEY;
+			if (!aiApiKey) {
 				throw new Error(
-					"AI_API_KEY and AI_PROVIDER_BASE_URL are required in .env.local",
+					"API key not configured. Set it in Settings or add ANTHROPIC_API_KEY to .env.local.",
 				);
 			}
 
-			return unsloth(modelName);
+			const anthropicProvider = createAnthropic({ apiKey: aiApiKey });
+			return anthropicProvider(aiModel);
+		case "openai":
+			aiApiKey = aiApiKey || process.env.OPENAI_API_KEY;
+			if (!aiApiKey) {
+				throw new Error(
+					"API key not configured. Set it in Settings or add OPENAI_API_KEY to .env.local.",
+				);
+			}
+			const openaiProvider = createOpenAI({ apiKey: aiApiKey });
+			return openaiProvider(aiModel);
+		case "groq":
+			aiApiKey = aiApiKey || process.env.GROQ_API_KEY;
+			if (!aiApiKey) {
+				throw new Error(
+					"API key not configured. Set it in Settings or add GROQ_API_KEY to .env.local.",
+				);
+			}
+
+			const groqProvider = createGroq({ apiKey: aiApiKey });
+			return groqProvider(aiModel);
+		case "deepseek":
+			aiApiKey = aiApiKey || process.env.DEEPSEEK_API_KEY;
+			if (!aiApiKey) {
+				throw new Error(
+					"API key not configured. Set it in Settings or add DEEPSEEK_API_KEY to .env.local.",
+				);
+			}
+
+			const deepSeekProvider = createDeepSeek({ apiKey: aiApiKey });
+			return deepSeekProvider(aiModel);
+		case "lmstudio":
+			return lmstudioChat(aiModel);
+
+		case "ollama":
+			return ollama(aiModel);
+
+		case "unsloth":
+			if (!aiApiKey) {
+				throw new Error(
+					"API key not configured. Set it in Settings or add AI_API_KEY to .env.local.",
+				);
+			}
+
+			if (!process.env.AI_PROVIDER_BASE_URL) {
+				throw new Error("AI_PROVIDER_BASE_URL is not set in .env.local.");
+			}
+
+			return unsloth(aiApiKey)(aiModel);
 
 		default:
-			throw new Error(`Unknown provider: ${PROVIDER}`);
+			throw new Error(`Unknown LLM provider: ${aiProvider}`);
 	}
 }
 
@@ -64,17 +102,24 @@ const EMBEDDING_PROVIDER = process.env.EMBEDDING_PROVIDER || "voyage";
 const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || "voyage-4-large";
 export const embeddingModel = EMBEDDING_MODEL;
 
-export function getEmbeddingModel(modelOverride?: string): Embedder {
-	const modelName = modelOverride || EMBEDDING_MODEL;
+export function getEmbedder(
+	userProvider?: string,
+	userApiKey?: string | null,
+	userModel?: string | null,
+): Embedder {
+	const aiProvider = userProvider || EMBEDDING_PROVIDER;
+	const aiModel = userModel || EMBEDDING_MODEL;
+	const aiApiKey = userApiKey || process.env.VOYAGE_API_KEY;
 
-	switch (EMBEDDING_PROVIDER) {
+	switch (aiProvider) {
+		// TODO: have to validate/test this locally
 		case "ollama":
 			return {
 				embed: async ({ input }) => {
 					const response = await fetch("http://localhost:11434/api/embed", {
 						method: "POST",
 						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({ model: modelName, input }),
+						body: JSON.stringify({ model: aiModel, input }),
 					});
 					const data = await response.json();
 					return {
@@ -83,31 +128,49 @@ export function getEmbeddingModel(modelOverride?: string): Embedder {
 				},
 			};
 		case "voyage":
-		default:
-			if (!process.env.VOYAGE_API_KEY) {
-				throw new Error("VOYAGE_API_KEY is required in .env.local");
+			if (!aiApiKey) {
+				throw new Error(
+					"API key not configured. Set it in Settings or add VOYAGE_API_KEY to .env.local.",
+				);
 			}
 
 			return new VoyageAIClient({
-				apiKey: process.env.VOYAGE_API_KEY,
+				apiKey: aiApiKey,
 			}) as unknown as Embedder;
+		default:
+			throw new Error(`Unsupported embedding provider: ${aiProvider}`);
 	}
 }
+
+export function resolveEmbeddingModel(userModel?: string | null) {
+	return userModel || EMBEDDING_MODEL;
+}
+
+// Reranker model and provider
 
 const RERANK_PROVIDER = process.env.RERANK_PROVIDER || "voyage";
 const RERANK_MODEL = process.env.RERANK_MODEL || "rerank-2.5";
 export const rerankModel = RERANK_MODEL;
 
-export function getRerankModel() {
-	switch (RERANK_PROVIDER) {
+export function getReranker(
+	userProvider?: string,
+	userApiKey?: string | null,
+): VoyageAIClient {
+	const aiProvider = userProvider || RERANK_PROVIDER;
+	const aiApiKey = userApiKey || process.env.VOYAGE_API_KEY;
+
+	switch (aiProvider) {
 		case "voyage":
-		default:
-			if (!process.env.VOYAGE_API_KEY) {
-				throw new Error("VOYAGE_API_KEY is required in .env.local");
+			if (!aiApiKey) {
+				throw new Error(
+					"API key not configured. Set it in Settings or add VOYAGE_API_KEY to .env.local.",
+				);
 			}
 
 			return new VoyageAIClient({
-				apiKey: process.env.VOYAGE_API_KEY,
+				apiKey: aiApiKey,
 			});
+		default:
+			throw new Error(`Unsupported rerank provider: ${aiProvider}`);
 	}
 }

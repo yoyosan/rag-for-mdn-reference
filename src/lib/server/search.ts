@@ -1,17 +1,21 @@
 import { cosineDistance, eq, sql } from "drizzle-orm";
-import { embeddingModel, getEmbeddingModel } from "@/config/ai";
+import { getEmbedder, resolveEmbeddingModel } from "@/config/ai";
 import { db } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
 import { documentsTable } from "@/db/schema/documents";
+import { AIToolsParams } from "@/lib/helpers/aiTools";
 import { rerankResults } from "@/lib/server/reranker";
+import { Embedder } from "@/types/aiProviders";
 import { RankedSearchResult, SearchResult } from "@/types/semanticSearch";
 
 export async function generateQuestionEmbedding(
 	question: string,
+	{ embedder, embedModel }: { embedder?: Embedder; embedModel?: string },
 ): Promise<number[]> {
-	const embedder = getEmbeddingModel();
-	const response = await embedder.embed({
-		model: embeddingModel,
+	const resolvedEmbedder = embedder ?? getEmbedder();
+	const resolvedEmbedModel = embedModel ?? resolveEmbeddingModel();
+	const response = await resolvedEmbedder.embed({
+		model: resolvedEmbedModel,
 		input: question,
 		inputType: "query",
 	});
@@ -60,9 +64,13 @@ async function searchSimilarChunks(
 export async function performSemanticSearch(
 	question: string,
 	limit: number = 5,
+	aiTools: AIToolsParams,
 	onResults?: (results: SearchResult[]) => void,
 ): Promise<SearchResult[]> {
-	const questionEmbedding = await generateQuestionEmbedding(question);
+	const questionEmbedding = await generateQuestionEmbedding(question, {
+		embedder: aiTools.embedder,
+		embedModel: aiTools.embedModel,
+	});
 
 	const hybridResults: SearchResult[] = await hybridSearch(
 		question,
@@ -78,6 +86,7 @@ export async function performSemanticSearch(
 		const rerankedResults = await rerankResults<SearchResult>(
 			question,
 			hybridResults,
+			aiTools.reranker,
 		);
 		results = rerankedResults.slice(0, limit);
 	} catch (error) {

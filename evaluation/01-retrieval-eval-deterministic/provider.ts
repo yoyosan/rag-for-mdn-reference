@@ -1,5 +1,6 @@
 import type { ApiProvider, ProviderResponse } from "promptfoo";
 import promptfoo from "promptfoo";
+import { getEmbedder, getReranker, resolveEmbeddingModel } from "@/config/ai";
 import { performSemanticSearch } from "@/lib/server/search";
 import { CachedResult, cachedResultSchema } from "@/types/scripts/promptfoo";
 
@@ -23,7 +24,11 @@ export default class RetrievalProvider implements ApiProvider {
 		}
 
 		try {
-			const results = await performSemanticSearch(prompt);
+			const results = await performSemanticSearch(prompt, 5, {
+				embedder: getEmbedder(),
+				reranker: getReranker(),
+				embedModel: resolveEmbeddingModel(),
+			});
 			const formattedResult: CachedResult = {
 				output: results,
 			};

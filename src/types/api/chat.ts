@@ -1,5 +1,14 @@
 import z from "zod";
+import { AIProviderType } from "@/types/aiProviders";
 import { AppUIMessage, messageMetadataSchema } from "@/types/api/aiMessage";
+
+export type UserAISettings = {
+	aiApiKey?: string | null;
+	aiApiProvider?: AIProviderType | null;
+	aiModel?: string | null;
+	aiEmbedModel?: string | null;
+	aiVoyageApiKey?: string | null;
+};
 
 const uiMessagePartSchema = z
 	.object({

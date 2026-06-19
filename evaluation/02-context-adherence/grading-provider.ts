@@ -1,6 +1,6 @@
 import { generateText } from "ai";
 import type { ApiProvider, ProviderResponse } from "promptfoo";
-import { getAIModel } from "@/config/ai";
+import { getLLM } from "@/config/ai";
 
 export default class OllamaGradingProvider implements ApiProvider {
 	id(): string {
@@ -9,7 +9,7 @@ export default class OllamaGradingProvider implements ApiProvider {
 
 	async callApi(prompt: string): Promise<ProviderResponse> {
 		const { text } = await generateText({
-			model: getAIModel(),
+			model: getLLM(),
 			prompt,
 		});
 		return { output: text };

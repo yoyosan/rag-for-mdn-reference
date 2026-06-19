@@ -1,5 +1,10 @@
 import { generateText } from "ai";
-import { getAIModel } from "@/config/ai";
+import {
+	getEmbedder,
+	getLLM,
+	getReranker,
+	resolveEmbeddingModel,
+} from "@/config/ai";
 import { transformChunksForFrontend } from "@/lib/helpers/aiTools";
 import { performSemanticSearch } from "@/lib/server/search";
 import { SearchResult } from "@/types/semanticSearch";
@@ -62,7 +67,7 @@ async function queryLLM(
 	const prompt = createRAGPrompt(question, context);
 
 	const { text, usage } = await generateText({
-		model: getAIModel(),
+		model: getLLM(),
 		prompt,
 		temperature: 0.1,
 	});
@@ -78,7 +83,11 @@ export async function performRAGQuery(
 ): Promise<RAGResponse> {
 	const { limit = 5 } = options;
 
-	const retrievedChunks = await performSemanticSearch(question, limit);
+	const retrievedChunks = await performSemanticSearch(question, limit, {
+		embedder: getEmbedder(),
+		reranker: getReranker(),
+		embedModel: resolveEmbeddingModel(),
+	});
 
 	if (retrievedChunks.length === 0) {
 		return {

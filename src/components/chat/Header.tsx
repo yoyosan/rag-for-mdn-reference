@@ -3,10 +3,14 @@ import {
 	PanelLeftClose,
 	PanelLeftOpen,
 	RotateCcw,
+	Settings,
 } from "lucide-react";
+import Link from "next/link";
+import { HeaderTitle } from "@/components/HeaderTitle";
 
 type ChatHeaderProps = {
 	hasMessages: boolean;
+	hasAPIKeysConf: boolean;
 	clearChat: () => void;
 	isContextPanelOpen: boolean;
 	toggleContextPanel: () => void;
@@ -15,6 +19,7 @@ type ChatHeaderProps = {
 
 export function ChatHeader({
 	hasMessages,
+	hasAPIKeysConf,
 	clearChat,
 	isContextPanelOpen,
 	toggleContextPanel,
@@ -22,12 +27,7 @@ export function ChatHeader({
 }: ChatHeaderProps) {
 	return (
 		<header className="border-b border-gray-800 p-4 flex items-center justify-between bg-[#1a1a2e]">
-			<div className="flex items-center gap-3">
-				<h1 className="text-xl font-semibold text-white">MDN Developer Chat</h1>
-				<span className="text-sm text-gray-400">
-					AI-powered documentation assistant
-				</span>
-			</div>
+			<HeaderTitle />
 
 			<div className="flex items-center gap-2">
 				<button
@@ -46,21 +46,29 @@ export function ChatHeader({
 
 				<button
 					onClick={enableExportDialog}
-					className="p-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
+					className="p-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white disabled:text-gray-700 disabled:cursor-not-allowed disabled:hover:bg-transparent"
 					aria-label="Export conversation"
-					disabled={!hasMessages}
+					disabled={!hasAPIKeysConf || !hasMessages}
 				>
 					<Download className="w-5 h-5" />
 				</button>
 
 				<button
 					onClick={clearChat}
-					className="p-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
+					className="p-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white disabled:text-gray-700 disabled:cursor-not-allowed disabled:hover:bg-transparent"
 					aria-label="Clear conversation"
-					disabled={!hasMessages}
+					disabled={!hasAPIKeysConf || !hasMessages}
 				>
 					<RotateCcw className="w-5 h-5" />
 				</button>
+
+				<Link
+					className="p-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
+					aria-label="Settings"
+					href="/settings"
+				>
+					<Settings className="w-5 h-5" />
+				</Link>
 			</div>
 		</header>
 	);
