@@ -1,4 +1,4 @@
-import { InferUITools, UIDataTypes, UIMessage } from "ai";
+import type { InferUITools, UIDataTypes, UIMessage } from "ai";
 import z from "zod";
 import type { AITools } from "@/lib/helpers/aiTools";
 

@@ -9,7 +9,7 @@ import {
 	vector,
 } from "drizzle-orm/pg-core";
 import { documentsTable } from "@/db/schema/documents";
-import { ChunkId, DocumentId } from "@/types/brands";
+import type { ChunkId, DocumentId } from "@/types/brands";
 
 const tsvector = customType<{ data: string }>({
 	dataType() {
@@ -23,7 +23,7 @@ export const chunksTable = pgTable(
 		id: text("id").$type<ChunkId>().primaryKey(),
 		documentId: uuid("document_id")
 			.$type<DocumentId>()
-			.references(() => documentsTable.id, { onDelete: "cascade" })
+			.references(() => documentsTable.id)
 			.notNull(),
 		content: text("content").notNull(),
 		chunkIndex: integer("chunk_index").notNull(),

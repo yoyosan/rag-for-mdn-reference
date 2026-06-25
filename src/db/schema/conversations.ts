@@ -1,5 +1,5 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { ConversationId } from "@/types/brands";
+import type { ConversationId } from "@/types/brands";
 
 export const conversationsTable = pgTable("conversations", {
 	id: uuid("id").$type<ConversationId>().defaultRandom().primaryKey(),

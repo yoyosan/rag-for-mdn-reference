@@ -3,10 +3,10 @@ import { getEmbedder, resolveEmbeddingModel } from "@/config/ai";
 import { db } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
 import { documentsTable } from "@/db/schema/documents";
-import { AIToolsParams } from "@/lib/helpers/aiTools";
+import type { AIToolsParams } from "@/lib/helpers/aiTools";
 import { rerankResults } from "@/lib/server/reranker";
-import { Embedder } from "@/types/aiProviders";
-import { RankedSearchResult, SearchResult } from "@/types/semanticSearch";
+import type { Embedder } from "@/types/aiProviders";
+import type { RankedSearchResult, SearchResult } from "@/types/semanticSearch";
 
 export async function generateQuestionEmbedding(
 	question: string,

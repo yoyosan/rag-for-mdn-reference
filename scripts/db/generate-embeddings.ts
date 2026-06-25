@@ -2,7 +2,10 @@ import { isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
 import { runScript } from "@/lib/scripts/utils";
-import { ChunkRow, generateEmbeddingsForChunks } from "@/lib/server/embeddings";
+import {
+	type ChunkRow,
+	generateEmbeddingsForChunks,
+} from "@/lib/server/embeddings";
 
 const VOYAGE_MAX_BATCH_SIZE = 128;
 

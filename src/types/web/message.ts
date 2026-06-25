@@ -1,8 +1,13 @@
 export interface ChatSource {
 	id: string;
+	citationNumber: number;
 	title: string;
 	snippet: string;
 	url: string;
+	similarity: number;
+	sourceFilePath: string;
+	chunkId: string;
+	content: string;
 }
 
 export interface ChatMessage {

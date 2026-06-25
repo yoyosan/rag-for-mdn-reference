@@ -1,4 +1,4 @@
-import { VoyageAIClient } from "voyageai";
+import type { VoyageAIClient } from "voyageai";
 import { getReranker, rerankModel } from "@/config/ai";
 
 export async function rerankResults<T extends { content: string }>(

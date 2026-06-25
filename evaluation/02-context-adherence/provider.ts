@@ -1,7 +1,10 @@
 import type { ApiProvider, ProviderResponse } from "promptfoo";
 import promptfoo from "promptfoo";
 import { performRAGQuery } from "@/lib/server/rag";
-import { CachedResult, cachedResultSchema } from "@/types/scripts/promptfoo";
+import {
+	type CachedResult,
+	cachedResultSchema,
+} from "@/types/scripts/promptfoo";
 
 export default class GenerationWithSourcesProvider implements ApiProvider {
 	id(): string {

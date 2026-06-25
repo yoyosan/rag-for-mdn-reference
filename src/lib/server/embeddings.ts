@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { getEmbedder, resolveEmbeddingModel } from "@/config/ai";
 import { db } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
-import { Chunk } from "@/types/entities/chunk";
+import type { Chunk } from "@/types/entities/chunk";
 
 export type ChunkRow = Pick<Chunk, "id" | "content">;
 
@@ -38,6 +38,7 @@ export async function generateEmbeddingsForChunks(
 						.set({ embedding })
 						.where(eq(chunksTable.id, chunk.id));
 				}
+				return Promise.resolve();
 			}),
 		);
 	});

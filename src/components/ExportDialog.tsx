@@ -3,7 +3,7 @@
 import { clsx } from "clsx";
 import { Check, Copy, Download, FileText, Hash, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { ChatMessage } from "@/types/web/message";
+import type { ChatMessage } from "@/types/web/message";
 
 interface ExportDialogProps {
 	messages: ChatMessage[];
@@ -125,6 +125,7 @@ export function ExportDialog({ messages, onClose }: ExportDialogProps) {
 						</p>
 					</div>
 					<button
+						type="button"
 						onClick={onClose}
 						className="p-2 rounded-lg hover:bg-gray-800 transition-colors text-gray-400 hover:text-white"
 						aria-label="Close dialog"
@@ -138,6 +139,7 @@ export function ExportDialog({ messages, onClose }: ExportDialogProps) {
 					<h3 className="text-sm font-medium text-white mb-3">Export Format</h3>
 					<div className="flex gap-3">
 						<button
+							type="button"
 							onClick={() => setFormat("markdown")}
 							className={clsx(
 								"flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors",
@@ -150,6 +152,7 @@ export function ExportDialog({ messages, onClose }: ExportDialogProps) {
 							Markdown
 						</button>
 						<button
+							type="button"
 							onClick={() => setFormat("plaintext")}
 							className={clsx(
 								"flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors",
@@ -185,6 +188,7 @@ export function ExportDialog({ messages, onClose }: ExportDialogProps) {
 
 					<div className="flex gap-3">
 						<button
+							type="button"
 							onClick={handleCopy}
 							className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
 						>
@@ -202,6 +206,7 @@ export function ExportDialog({ messages, onClose }: ExportDialogProps) {
 						</button>
 
 						<button
+							type="button"
 							onClick={handleDownload}
 							className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
 						>

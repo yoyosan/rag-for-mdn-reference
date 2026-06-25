@@ -1,5 +1,5 @@
 import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { DocumentId } from "@/types/brands";
+import type { DocumentId } from "@/types/brands";
 
 export const documentsTable = pgTable("documents", {
 	id: uuid("id").$type<DocumentId>().defaultRandom().primaryKey(),

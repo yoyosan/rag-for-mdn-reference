@@ -1,7 +1,8 @@
 "use client";
 
 import { BookOpen, Clock, ExternalLink } from "lucide-react";
-import { ChatSource } from "@/types/web/message";
+import { isSafeUrl } from "@/lib/client/utils";
+import type { ChatSource } from "@/types/web/message";
 
 interface ContextPanelProps {
 	sources: ChatSource[];
@@ -64,7 +65,7 @@ export function ContextPanel({ sources }: ContextPanelProps) {
 											</div>
 
 											<a
-												href={source.url}
+												href={isSafeUrl(source.url) ? source.url : "#"}
 												target="_blank"
 												rel="noopener noreferrer"
 												className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"

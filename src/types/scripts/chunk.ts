@@ -1,4 +1,4 @@
-import { ChunkId } from "@/types/brands";
+import type { ChunkId } from "@/types/brands";
 
 export interface ChunkData {
 	id: ChunkId;

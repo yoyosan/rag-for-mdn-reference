@@ -2,7 +2,10 @@ import type { ApiProvider, ProviderResponse } from "promptfoo";
 import promptfoo from "promptfoo";
 import { getEmbedder, getReranker, resolveEmbeddingModel } from "@/config/ai";
 import { performSemanticSearch } from "@/lib/server/search";
-import { CachedResult, cachedResultSchema } from "@/types/scripts/promptfoo";
+import {
+	type CachedResult,
+	cachedResultSchema,
+} from "@/types/scripts/promptfoo";
 
 export default class RetrievalProvider implements ApiProvider {
 	id(): string {

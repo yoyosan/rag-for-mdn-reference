@@ -157,7 +157,7 @@ async function main(): Promise<void> {
 		console.log(`   - ${tag}`);
 	}
 
-	console.log("\n" + "=".repeat(60));
+	console.log(`\n${"=".repeat(60)}`);
 	console.log(
 		isDryRun
 			? "Checking migrations (will rollback)..."
@@ -166,7 +166,7 @@ async function main(): Promise<void> {
 	console.log("=".repeat(60));
 
 	if (!isDryRun) {
-		const readline = await import("readline");
+		const readline = await import("node:readline");
 		const rl = readline.createInterface({
 			input: process.stdin,
 			output: process.stdout,
@@ -213,15 +213,15 @@ async function main(): Promise<void> {
 
 		if (isDryRun) {
 			await client.query("ROLLBACK");
-			console.log("\n" + "=".repeat(60));
+			console.log(`\n${"=".repeat(60)}`);
 			console.log("🔄 ROLLED BACK — No changes were made to the database");
 		} else if (allSuccess) {
 			await client.query("COMMIT");
-			console.log("\n" + "=".repeat(60));
+			console.log(`\n${"=".repeat(60)}`);
 			console.log("✅ COMMITTED — All migrations applied successfully!");
 		} else {
 			await client.query("ROLLBACK");
-			console.log("\n" + "=".repeat(60));
+			console.log(`\n${"=".repeat(60)}`);
 			console.log("🔄 ROLLED BACK — Errors were found, no changes made");
 		}
 

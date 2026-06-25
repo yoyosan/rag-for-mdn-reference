@@ -2,8 +2,11 @@ import { db } from "@/db";
 import { chunksTable } from "@/db/schema/chunks";
 import { documentsTable } from "@/db/schema/documents";
 import { generateContextForChunk } from "@/lib/server/contextualiser";
-import { ChunkData, ChunkWithContext } from "@/types/scripts/chunk";
-import { DocumentGroups, DocumentToInsert } from "@/types/scripts/document";
+import type { ChunkData, ChunkWithContext } from "@/types/scripts/chunk";
+import type {
+	DocumentGroups,
+	DocumentToInsert,
+} from "@/types/scripts/document";
 
 export async function analyzeExistingChunks(inputChunks: ChunkData[]): Promise<{
 	chunksWithEmbeddings: Set<string>;

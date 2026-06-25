@@ -1,10 +1,10 @@
 import { getEmbedder, getReranker, resolveEmbeddingModel } from "@/config/ai";
 import { runScript } from "@/lib/scripts/utils";
 import { performSemanticSearch } from "@/lib/server/search";
-import { SearchResult } from "@/types/semanticSearch";
+import type { SearchResult } from "@/types/semanticSearch";
 
 function displayResults(results: SearchResult[], question: string): void {
-	console.log("\n" + "=".repeat(80));
+	console.log(`\n${"=".repeat(80)}`);
 	console.log(`📊 SEMANTIC SEARCH RESULTS FOR: "${question}"`);
 	console.log("=".repeat(80));
 
@@ -48,11 +48,11 @@ function displayResults(results: SearchResult[], question: string): void {
 		console.log(`   🆔 Chunk ID: ${result.chunkId}`);
 
 		if (index < results.length - 1) {
-			console.log("\n" + "-".repeat(40));
+			console.log(`\n${"-".repeat(40)}`);
 		}
 	});
 
-	console.log("\n" + "=".repeat(80));
+	console.log(`\n${"=".repeat(80)}`);
 }
 
 async function main(): Promise<void> {
@@ -63,7 +63,7 @@ async function main(): Promise<void> {
 
 	if (args.length === 0) {
 		// Interactive mode - prompt for question
-		const readline = await import("readline");
+		const readline = await import("node:readline");
 		const rl = readline.createInterface({
 			input: process.stdin,
 			output: process.stdout,
@@ -84,7 +84,7 @@ async function main(): Promise<void> {
 
 		if (limitArg) {
 			const parsed = parseInt(limitArg.split("=")[1], 10);
-			if (!isNaN(parsed) && parsed > 0) {
+			if (!Number.isNaN(parsed) && parsed > 0) {
 				limit = parsed;
 			} else {
 				console.warn(`⚠️  Invalid --limit value, using default: ${limit}`);

@@ -2,12 +2,16 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { createGroq } from "@ai-sdk/groq";
 import { createOpenAI } from "@ai-sdk/openai";
-import { LanguageModel } from "ai";
+import type { LanguageModel } from "ai";
 import { VoyageAIClient } from "voyageai";
 import { lmstudioChat } from "@/lib/aiProviders/lmstudio";
 import { ollama } from "@/lib/aiProviders/ollama";
 import { unsloth } from "@/lib/aiProviders/unsloth";
-import { AIProviders, AIProviderType, Embedder } from "@/types/aiProviders";
+import {
+	AIProviders,
+	type AIProviderType,
+	type Embedder,
+} from "@/types/aiProviders";
 
 // AI/LLM provider and model
 
@@ -33,7 +37,7 @@ export function getLLM(
 	let aiApiKey = userApiKey || process.env.AI_API_KEY;
 
 	switch (aiProvider) {
-		case "anthropic":
+		case "anthropic": {
 			aiApiKey = aiApiKey || process.env.ANTHROPIC_API_KEY;
 			if (!aiApiKey) {
 				throw new Error(
@@ -43,7 +47,8 @@ export function getLLM(
 
 			const anthropicProvider = createAnthropic({ apiKey: aiApiKey });
 			return anthropicProvider(aiModel);
-		case "openai":
+		}
+		case "openai": {
 			aiApiKey = aiApiKey || process.env.OPENAI_API_KEY;
 			if (!aiApiKey) {
 				throw new Error(
@@ -52,7 +57,8 @@ export function getLLM(
 			}
 			const openaiProvider = createOpenAI({ apiKey: aiApiKey });
 			return openaiProvider(aiModel);
-		case "groq":
+		}
+		case "groq": {
 			aiApiKey = aiApiKey || process.env.GROQ_API_KEY;
 			if (!aiApiKey) {
 				throw new Error(
@@ -62,7 +68,8 @@ export function getLLM(
 
 			const groqProvider = createGroq({ apiKey: aiApiKey });
 			return groqProvider(aiModel);
-		case "deepseek":
+		}
+		case "deepseek": {
 			aiApiKey = aiApiKey || process.env.DEEPSEEK_API_KEY;
 			if (!aiApiKey) {
 				throw new Error(
@@ -72,6 +79,7 @@ export function getLLM(
 
 			const deepSeekProvider = createDeepSeek({ apiKey: aiApiKey });
 			return deepSeekProvider(aiModel);
+		}
 		case "lmstudio":
 			return lmstudioChat(aiModel);
 

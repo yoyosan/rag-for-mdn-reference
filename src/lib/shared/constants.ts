@@ -1,4 +1,4 @@
-import { externalAIProviders } from "@/types/aiProviders";
+import type { externalAIProviders } from "@/types/aiProviders";
 
 export const externalAIProvidersLabels: Record<
 	(typeof externalAIProviders)[number],

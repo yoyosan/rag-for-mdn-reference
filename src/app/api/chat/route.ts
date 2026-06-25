@@ -1,6 +1,6 @@
 import { convertToModelMessages, stepCountIs, streamText } from "ai";
 import { sql } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import {
 	getEmbedder,
 	getLLM,
@@ -11,8 +11,8 @@ import { db } from "@/db";
 import { rateLimitsTable } from "@/db/schema/rateLimits";
 import { createAITools } from "@/lib/helpers/aiTools";
 import { ragSystemPrompt } from "@/lib/server/rag";
-import { AIProviders, AIProviderType } from "@/types/aiProviders";
-import { chatRequestSchema, UserAISettings } from "@/types/api/chat";
+import { AIProviders, type AIProviderType } from "@/types/aiProviders";
+import { chatRequestSchema, type UserAISettings } from "@/types/api/chat";
 
 // Vercel serverless function timeout
 export const maxDuration = 30;
@@ -75,19 +75,19 @@ export async function POST(req: NextRequest) {
 		const tools = createAITools({
 			embedder: getEmbedder(
 				"voyage",
-				userAISettings["aiVoyageApiKey"],
-				userAISettings["aiEmbedModel"],
+				userAISettings.aiVoyageApiKey,
+				userAISettings.aiEmbedModel,
 			),
-			reranker: getReranker("voyage", userAISettings["aiVoyageApiKey"]),
-			embedModel: resolveEmbeddingModel(userAISettings["aiEmbedModel"]),
+			reranker: getReranker("voyage", userAISettings.aiVoyageApiKey),
+			embedModel: resolveEmbeddingModel(userAISettings.aiEmbedModel),
 		});
 
 		const { messages } = parseResult.data;
 		const result = streamText({
 			model: getLLM(
-				userAISettings["aiApiProvider"],
-				userAISettings["aiApiKey"],
-				userAISettings["aiModel"],
+				userAISettings.aiApiProvider,
+				userAISettings.aiApiKey,
+				userAISettings.aiModel,
 			),
 			messages: await convertToModelMessages(messages),
 			stopWhen: stepCountIs(2),

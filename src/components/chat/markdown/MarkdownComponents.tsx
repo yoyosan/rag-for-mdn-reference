@@ -6,6 +6,7 @@ import React from "react";
 import type { Components, ExtraProps } from "react-markdown";
 import { CodeBlock } from "@/components/chat/markdown/CodeBlock";
 import { processCitations } from "@/components/chat/markdown/processCitations";
+import { isSafeUrl } from "@/lib/client/utils";
 import type { ChatMessage } from "@/types/web/message";
 
 type CodeProps = ComponentPropsWithoutRef<"code"> & ExtraProps;
@@ -64,17 +65,20 @@ export function getMarkdownComponents(message: ChatMessage): Components {
 		),
 
 		// Links (external)
-		a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
-			<a
-				href={href}
-				target="_blank"
-				rel="noopener noreferrer"
-				className="text-blue-400 hover:text-blue-300 underline inline-flex items-center gap-1"
-			>
-				{children}
-				<ExternalLink className="w-3 h-3" />
-			</a>
-		),
+		a: ({ href, children }: { href?: string; children?: React.ReactNode }) => {
+			const safe = href && isSafeUrl(href);
+			return (
+				<a
+					href={safe ? href : "#"}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="text-blue-400 hover:text-blue-300 underline inline-flex items-center gap-1"
+				>
+					{children}
+					<ExternalLink className="w-3 h-3" />
+				</a>
+			);
+		},
 
 		// Blockquotes
 		blockquote: ({ children }: { children?: React.ReactNode }) => (

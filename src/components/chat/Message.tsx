@@ -5,7 +5,7 @@ import { Bot, ExternalLink, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getMarkdownComponents } from "@/components/chat/markdown/MarkdownComponents";
-import { type ChatMessage } from "@/types/web/message";
+import type { ChatMessage } from "@/types/web/message";
 
 interface ChatMessageProps {
 	message: ChatMessage;

@@ -1,10 +1,10 @@
-import { VoyageAIClient } from "voyageai";
+import type { VoyageAIClient } from "voyageai";
 import z from "zod";
 import { generateMDNUrl } from "@/lib/helpers/general";
 import { performSemanticSearch } from "@/lib/server/search";
-import { Embedder } from "@/types/aiProviders";
-import { SearchResult } from "@/types/semanticSearch";
-import { ChatSource } from "@/types/web/message";
+import type { Embedder } from "@/types/aiProviders";
+import type { SearchResult } from "@/types/semanticSearch";
+import type { ChatSource } from "@/types/web/message";
 
 const aiToolInputSchema = z.object({
 	message: z
@@ -62,7 +62,7 @@ export function transformChunksForFrontend(
 		id: String(index + 1),
 		citationNumber: index + 1,
 		title: source.documentTitle,
-		snippet: source.content.substring(0, 200) + "...",
+		snippet: `${source.content.substring(0, 200)}...`,
 		url: generateMDNUrl(source.documentSlug, source.headingContext),
 		similarity: source.similarity,
 		sourceFilePath: source.sourceFilePath,

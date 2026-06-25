@@ -22,7 +22,7 @@ async function main(): Promise<void> {
 	console.log("🔧 Migration Journal Sync");
 	console.log("=".repeat(60));
 
-	let dbResult;
+	let dbResult: { rows: { hash: string }[] };
 	try {
 		dbResult = await pool.query(
 			'SELECT hash FROM drizzle."__drizzle_migrations"',

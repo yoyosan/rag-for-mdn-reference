@@ -9,11 +9,11 @@
 		"ignoreUnknown": false,
 		"includes": [
 			"**",
-			"!.next/**",
-			"!out/**",
-			"!build/**",
+			"!.next",
+			"!out",
+			"!build",
 			"!next-env.d.ts",
-			"!drizzle/**",
+			"!drizzle",
 			"!chunks.json"
 		]
 	},
@@ -24,9 +24,10 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": false,
+			"recommended": true,
 			"complexity": {
-				"noUselessTypeConstraint": "error"
+				"noUselessTypeConstraint": "error",
+				"useOptionalChain": "off"
 			},
 			"correctness": {
 				"noNextAsyncClientComponent": "warn",

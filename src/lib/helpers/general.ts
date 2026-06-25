@@ -36,7 +36,7 @@ export const getErrorDisplay = (error: Error | undefined) => {
 		message.includes("Too many requests") ||
 		message.includes("Rate limit reached")
 	) {
-		const timeMatch = message.match(/try again in ([\dms\.]+)/i);
+		const timeMatch = message.match(/try again in ([\dms.]+)/i);
 		return {
 			title: "Rate limit reached",
 			description: `Too many requests.${timeMatch ? ` Try again in ${timeMatch[1]}.` : " Please wait a moment."}`,

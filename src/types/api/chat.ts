@@ -1,6 +1,9 @@
 import z from "zod";
-import { AIProviderType } from "@/types/aiProviders";
-import { AppUIMessage, messageMetadataSchema } from "@/types/api/aiMessage";
+import type { AIProviderType } from "@/types/aiProviders";
+import {
+	type AppUIMessage,
+	messageMetadataSchema,
+} from "@/types/api/aiMessage";
 
 export type UserAISettings = {
 	aiApiKey?: string | null;

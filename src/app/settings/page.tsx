@@ -6,7 +6,10 @@ import { toast } from "sonner";
 import { SettingsHeader } from "@/components/settings/Header";
 import { getStorageItem, setStorageItem } from "@/lib/client/localStorage";
 import { externalAIProvidersLabels } from "@/lib/shared/constants";
-import { ExternalAIProvider, externalAIProviders } from "@/types/aiProviders";
+import {
+	type ExternalAIProvider,
+	externalAIProviders,
+} from "@/types/aiProviders";
 
 export default function SettingsPage() {
 	const [aiProvider, setAiProvider] = useState("");

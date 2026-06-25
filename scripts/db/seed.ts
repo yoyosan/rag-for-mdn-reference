@@ -12,8 +12,8 @@ import {
 import { generateEmbeddingsForTexts } from "@/lib/server/embeddings";
 import { BATCH_SIZES } from "@/lib/shared/batchSizes";
 import type { ChunkId, DocumentId } from "@/types/brands";
-import { Chunk } from "@/types/entities/chunk";
-import { ChunkData } from "@/types/scripts/chunk";
+import type { Chunk } from "@/types/entities/chunk";
+import type { ChunkData } from "@/types/scripts/chunk";
 
 const projectRoot = path.resolve(import.meta.dir, "..", "..");
 const chunksPath = path.resolve(projectRoot, "chunks.json");

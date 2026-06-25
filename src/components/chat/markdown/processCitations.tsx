@@ -1,6 +1,6 @@
-import React from "react";
+import type React from "react";
 import { CitationTooltip } from "@/components/CitationTooltip";
-import { ChatSource } from "@/types/web/message";
+import type { ChatSource } from "@/types/web/message";
 
 export function processCitations(
 	content: string,
@@ -15,11 +15,12 @@ export function processCitations(
 
 	// Find citation patterns like [1], [2], etc.
 	const citationRegex = /\[(\d+)\]/g;
-	let match;
+	let match: RegExpExecArray | null;
 
-	while ((match = citationRegex.exec(content)) !== null) {
+	match = citationRegex.exec(content);
+	while (match !== null) {
 		const fullMatch = match[0];
-		const citationNumber = parseInt(match[1]);
+		const citationNumber = parseInt(match[1], 10);
 		const source = sources.find((s) => s.id === citationNumber.toString());
 
 		// Add text before citation
@@ -41,6 +42,7 @@ export function processCitations(
 		}
 
 		lastIndex = match.index + fullMatch.length;
+		match = citationRegex.exec(content);
 	}
 
 	// Add remaining text

@@ -1,4 +1,4 @@
-import { ChunkData } from "@/types/scripts/chunk";
+import type { ChunkData } from "@/types/scripts/chunk";
 
 interface DocumentGroup {
 	title: string;

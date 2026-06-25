@@ -9,7 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { chunksTable } from "@/db/schema/chunks";
 import { messagesTable } from "@/db/schema/messages";
-import { ChunkId, MessageId, MessageSourceId } from "@/types/brands";
+import type { ChunkId, MessageId, MessageSourceId } from "@/types/brands";
 
 export const messageSourcesTable = pgTable(
 	"message_sources",
@@ -17,11 +17,11 @@ export const messageSourcesTable = pgTable(
 		id: uuid("id").$type<MessageSourceId>().defaultRandom().primaryKey(),
 		messageId: uuid("message_id")
 			.$type<MessageId>()
-			.references(() => messagesTable.id, { onDelete: "cascade" })
+			.references(() => messagesTable.id)
 			.notNull(),
 		chunkId: text("chunk_id")
 			.$type<ChunkId>()
-			.references(() => chunksTable.id, { onDelete: "cascade" })
+			.references(() => chunksTable.id)
 			.notNull(),
 		relevanceScore: real("relevance_score").notNull(), // Similarity/relevance from RAG
 		citationNumber: integer("citation_number").notNull(), // For [1], [2], etc. in UI

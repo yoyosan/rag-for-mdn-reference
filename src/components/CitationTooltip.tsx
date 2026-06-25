@@ -4,7 +4,8 @@ import { clsx } from "clsx";
 import { ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChatSource } from "@/types/web/message";
+import { isSafeUrl } from "@/lib/client/utils";
+import type { ChatSource } from "@/types/web/message";
 
 interface CitationTooltipProps {
 	source: ChatSource;
@@ -17,7 +18,7 @@ export function CitationTooltip({
 }: CitationTooltipProps) {
 	const [isVisible, setIsVisible] = useState(false);
 	const [position, setPosition] = useState({ top: 0, left: 0 });
-	const triggerRef = useRef<HTMLSpanElement>(null);
+	const triggerRef = useRef<HTMLButtonElement>(null);
 	const tooltipRef = useRef<HTMLDivElement>(null);
 
 	const updatePosition = useCallback(() => {
@@ -73,18 +74,10 @@ export function CitationTooltip({
 		setIsVisible(false);
 	};
 
-	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === "Enter" || e.key === " ") {
-			e.preventDefault();
-			setIsVisible(!isVisible);
-		} else if (e.key === "Escape") {
-			setIsVisible(false);
-		}
-	};
-
 	return (
 		<>
-			<span
+			<button
+				type="button"
 				ref={triggerRef}
 				className={clsx(
 					"inline-flex items-center justify-center w-5 h-5 text-xs font-mono font-semibold rounded cursor-pointer transition-all",
@@ -95,22 +88,21 @@ export function CitationTooltip({
 				onClick={handleClick}
 				onMouseEnter={handleMouseEnter}
 				onMouseLeave={handleMouseLeave}
-				onKeyDown={handleKeyDown}
-				tabIndex={0}
-				role="button"
 				aria-label={`Citation ${citationNumber}: ${source.title}`}
 				aria-expanded={isVisible}
 			>
 				{citationNumber}
-			</span>
+			</button>
 
 			{isVisible &&
 				createPortal(
 					<>
 						{/* Backdrop for mobile */}
-						<div
+						<button
+							type="button"
 							className="fixed inset-0 z-40 lg:hidden"
 							onClick={() => setIsVisible(false)}
+							aria-label="Close tooltip"
 						/>
 
 						<div
@@ -142,7 +134,7 @@ export function CitationTooltip({
 
 								<div className="pt-2 border-t border-gray-700">
 									<a
-										href={source.url}
+										href={isSafeUrl(source.url) ? source.url : "#"}
 										target="_blank"
 										rel="noopener noreferrer"
 										className="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"

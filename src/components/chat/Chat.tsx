@@ -12,8 +12,8 @@ import { ChatMessageLoading } from "@/components/chat/MessageLoading";
 import { ExportDialog } from "@/components/ExportDialog";
 import { getStorageItem } from "@/lib/client/localStorage";
 import { getErrorDisplay } from "@/lib/helpers/general";
-import { AppUIMessage } from "@/types/api/aiMessage";
-import { ChatMessage, ChatSource } from "@/types/web/message";
+import type { AppUIMessage } from "@/types/api/aiMessage";
+import type { ChatMessage, ChatSource } from "@/types/web/message";
 
 const initialPrompts = [
 	"What is the difference between let and var in JavaScript?",
@@ -221,6 +221,7 @@ export function Chat() {
 								<div className="grid grid-cols-1 gap-2 text-sm">
 									{initialPrompts.map((prompt) => (
 										<button
+											type="button"
 											key={prompt}
 											onClick={() => setInput(prompt)}
 											disabled={!hasAPIKeysConf}

@@ -31,6 +31,7 @@ export function ChatHeader({
 
 			<div className="flex items-center gap-2">
 				<button
+					type="button"
 					onClick={toggleContextPanel}
 					className="p-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
 					aria-label={
@@ -45,6 +46,7 @@ export function ChatHeader({
 				</button>
 
 				<button
+					type="button"
 					onClick={enableExportDialog}
 					className="p-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white disabled:text-gray-700 disabled:cursor-not-allowed disabled:hover:bg-transparent"
 					aria-label="Export conversation"
@@ -54,6 +56,7 @@ export function ChatHeader({
 				</button>
 
 				<button
+					type="button"
 					onClick={clearChat}
 					className="p-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white disabled:text-gray-700 disabled:cursor-not-allowed disabled:hover:bg-transparent"
 					aria-label="Clear conversation"

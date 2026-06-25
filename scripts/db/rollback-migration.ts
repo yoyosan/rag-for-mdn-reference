@@ -347,7 +347,7 @@ async function main(): Promise<void> {
 		if (!removedEntry) {
 			throw new Error("No journal entry to remove");
 		}
-		writeFileSync(journalPath, JSON.stringify(journal, null, 2) + "\n");
+		writeFileSync(journalPath, `${JSON.stringify(journal, null, 2)}\n`);
 		console.log(`   ✅ Updated _journal.json`);
 
 		if (existsSync(sqlPath)) {

@@ -4,15 +4,15 @@ import { MarkdownTextSplitter } from "@langchain/textsplitters";
 import { runScript } from "@/lib/scripts/utils";
 import {
 	collectMarkdownFiles,
-	DocumentMetadata,
+	type DocumentMetadata,
 	findHeadings,
 	findNearestHeading,
 	getLineRange,
 	loadFilePayload,
 	normalizeText,
 } from "@/lib/server/chunking";
-import { ChunkId } from "@/types/brands";
-import { ChunkData } from "@/types/scripts/chunk";
+import type { ChunkId } from "@/types/brands";
+import type { ChunkData } from "@/types/scripts/chunk";
 
 const projectRoot = path.resolve(import.meta.dir, "..");
 const docsRoot = path.resolve(projectRoot, "mdn-js-docs");
