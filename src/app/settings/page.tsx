@@ -70,11 +70,11 @@ export default function SettingsPage() {
 	return (
 		<div className="flex flex-col h-screen bg-gray-950 text-white">
 			<SettingsHeader />
-			<main className="flex flex-col flex-1 items-center gap-10 p-20">
+			<main className="flex flex-col flex-1 items-center gap-10 p-4 sm:p-20">
 				<div className="text-2xl">Settings</div>
 
 				<form
-					className="flex flex-col flex-1 gap-4 w-1/2"
+					className="flex flex-col flex-1 gap-4 w-full sm:w-1/2"
 					onSubmit={(e) => {
 						e.preventDefault();
 						handleSubmit(new FormData(e.currentTarget));

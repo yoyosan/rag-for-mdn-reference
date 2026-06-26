@@ -281,7 +281,7 @@ export function Chat() {
 								onChange={(e) => setInput(e.target.value)}
 								onKeyDown={handleKeyDown}
 								placeholder="Ask me anything about MDN JavaScript ..."
-								className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 pr-12 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none min-h-12.5 max-h-32"
+								className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 pr-12 text-sm sm:text-base text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none min-h-12.5 max-h-32"
 								rows={1}
 								disabled={!isReady || !hasAPIKeysConf}
 							/>

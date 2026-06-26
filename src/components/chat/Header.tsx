@@ -34,7 +34,7 @@ export function ChatHeader({
 				<button
 					type="button"
 					onClick={toggleContextPanel}
-					className="p-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
+					className="hidden sm:flex p-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
 					aria-label={
 						isContextPanelOpen ? "Close context panel" : "Open context panel"
 					}

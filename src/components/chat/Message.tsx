@@ -28,7 +28,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
 			<div
 				className={clsx(
-					"max-w-4xl rounded-lg p-4",
+					"min-w-0 overflow-hidden max-w-4xl rounded-lg p-4",
 					isUser
 						? "bg-blue-600 text-white ml-auto"
 						: "bg-gray-800 text-gray-100",
