@@ -1,11 +1,18 @@
 "use client";
 
-import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { SettingsHeader } from "@/components/settings/Header";
+import { HelperText } from "@/components/settings/HelperText";
+import { PasswordField } from "@/components/settings/PasswordField";
+import { RecommendedModel } from "@/components/settings/RecommendedModel";
+import { SignUpLink } from "@/components/settings/SignUpLink";
+import { TextField } from "@/components/settings/TextField";
 import { getStorageItem, setStorageItem } from "@/lib/client/localStorage";
-import { externalAIProvidersLabels } from "@/lib/shared/constants";
+import {
+	externalAIProviderMeta,
+	voyageRecommendedModels,
+} from "@/lib/shared/constants";
 import {
 	type ExternalAIProvider,
 	externalAIProviders,
@@ -13,39 +20,18 @@ import {
 
 export default function SettingsPage() {
 	const [aiProvider, setAiProvider] = useState("");
+	const [apiKey, setApiKey] = useState("");
+	const [aiModel, setAiModel] = useState("");
+	const [voyageApiKey, setVoyageApiKey] = useState("");
+	const [embedModel, setEmbedModel] = useState("");
+
 	useEffect(() => {
 		setAiProvider((getStorageItem("ai-provider") || "") as ExternalAIProvider);
+		setApiKey(getStorageItem("api-key") || "");
+		setAiModel(getStorageItem("ai-model") || "");
+		setVoyageApiKey(getStorageItem("voyage-api-key") || "");
+		setEmbedModel(getStorageItem("embed-model") || "");
 	}, []);
-
-	const [apiKey, setApiKey] = useState(getStorageItem("api-key") || "");
-	const [aiModel, setAiModel] = useState(getStorageItem("ai-model") || "");
-	const [voyageApiKey, setVoyageApiKey] = useState(
-		getStorageItem("voyage-api-key") || "",
-	);
-	const [embedModel, setEmbedModel] = useState(
-		getStorageItem("embed-model") || "",
-	);
-	const [showPassword, setShowPassword] = useState(false);
-
-	const changeProvider = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		setAiProvider(e.target.value as ExternalAIProvider);
-	};
-
-	const changeApiKey = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setApiKey(e.target.value);
-	};
-
-	const changeAiModel = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setAiModel(e.target.value);
-	};
-
-	const changeVoyageApiKey = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setVoyageApiKey(e.target.value);
-	};
-
-	const changeEmbedModel = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setEmbedModel(e.target.value);
-	};
 
 	const handleSubmit = (formData: FormData) => {
 		setStorageItem("ai-provider", formData.get("ai-provider") as string);
@@ -77,6 +63,10 @@ export default function SettingsPage() {
 		setEmbedModel("");
 	};
 
+	const providerMeta = aiProvider
+		? externalAIProviderMeta[aiProvider as ExternalAIProvider]
+		: null;
+
 	return (
 		<div className="flex flex-col h-screen bg-gray-950 text-white">
 			<SettingsHeader />
@@ -102,7 +92,9 @@ export default function SettingsPage() {
 							name="ai-provider"
 							className="mt-1 p-2 block w-full rounded-md border-gray-700 bg-[#1a1a2e] text-white"
 							value={aiProvider}
-							onChange={changeProvider}
+							onChange={(e) =>
+								setAiProvider(e.target.value as ExternalAIProvider)
+							}
 							required
 						>
 							<option value="" disabled>
@@ -110,107 +102,85 @@ export default function SettingsPage() {
 							</option>
 							{externalAIProviders.map((provider) => (
 								<option key={provider} value={provider}>
-									{externalAIProvidersLabels[provider]}
+									{externalAIProviderMeta[provider].label}
+									{externalAIProviderMeta[provider].free
+										? ` (${externalAIProviderMeta[provider].free})`
+										: ""}
 								</option>
 							))}
 						</select>
 					</div>
-					<div className="mb-4">
-						<label
-							htmlFor="api-key"
-							className="block font-medium text-gray-300 text-lg"
-						>
-							AI API Key
-						</label>
-						<div className="relative">
-							<input
-								type={showPassword ? "text" : "password"}
-								id="api-key"
-								name="api-key"
-								required
-								value={apiKey}
-								className="mt-1 p-2 pr-10 block w-full rounded-md border-gray-700 bg-[#1a1a2e] text-white"
-								onChange={changeApiKey}
-							/>
-							<button
-								type="button"
-								onClick={() => setShowPassword(!showPassword)}
-								className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-								aria-label={showPassword ? "Hide password" : "Show password"}
-							>
-								{showPassword ? (
-									<EyeOff className="w-5 h-5" />
-								) : (
-									<Eye className="w-5 h-5" />
-								)}
-							</button>
-						</div>
-					</div>
-					<div className="mb-4">
-						<label
-							htmlFor="ai-model"
-							className="block font-medium text-gray-300 text-lg"
-						>
-							AI Model
-						</label>
-						<input
-							type="text"
-							id="ai-model"
-							name="ai-model"
-							required
-							value={aiModel}
-							className="mt-1 p-2 pr-10 block w-full rounded-md border-gray-700 bg-[#1a1a2e] text-white"
-							onChange={changeAiModel}
-						/>
-					</div>
-					<div className="mb-4">
-						<label
-							htmlFor="voyage-api-key"
-							className="block font-medium text-gray-300 text-lg"
-						>
-							Voyage API Key
-						</label>
-						<div className="relative">
-							<input
-								type={showPassword ? "text" : "password"}
-								id="voyage-api-key"
-								name="voyage-api-key"
-								required
-								value={voyageApiKey}
-								className="mt-1  p-2 block w-full rounded-md border-gray-700 bg-[#1a1a2e] text-white"
-								onChange={changeVoyageApiKey}
-							/>
-							<button
-								type="button"
-								onClick={() => setShowPassword(!showPassword)}
-								className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-								aria-label={showPassword ? "Hide password" : "Show password"}
-							>
-								{showPassword ? (
-									<EyeOff className="w-5 h-5" />
-								) : (
-									<Eye className="w-5 h-5" />
-								)}
-							</button>
-						</div>
-					</div>
-					<div className="mb-4">
-						<label
-							htmlFor="embed-model"
-							className="block font-medium text-gray-300 text-lg"
-						>
-							Embedding Model
-						</label>
-						<input
-							type="text"
-							id="embed-model"
-							name="embed-model"
-							required
-							value={embedModel}
-							className="mt-1 p-2 pr-10 block w-full rounded-md border-gray-700 bg-[#1a1a2e] text-white"
-							onChange={changeEmbedModel}
-						/>
-					</div>
+
+					<PasswordField
+						id="api-key"
+						name="api-key"
+						label="AI API Key"
+						value={apiKey}
+						onChange={(e) => setApiKey(e.target.value)}
+						helper={
+							!apiKey && providerMeta ? (
+								<HelperText>
+									Don't have an API key?{" "}
+									<SignUpLink
+										href={providerMeta.url}
+										label={`Sign up for ${providerMeta.label}`}
+									/>
+								</HelperText>
+							) : null
+						}
+					/>
+
+					<TextField
+						id="ai-model"
+						name="ai-model"
+						label="AI Model"
+						value={aiModel}
+						onChange={(e) => setAiModel(e.target.value)}
+						helper={
+							!aiModel && providerMeta ? (
+								<RecommendedModel
+									model={providerMeta.recommendedModel}
+									onSelect={setAiModel}
+								/>
+							) : null
+						}
+					/>
+
+					<PasswordField
+						id="voyage-api-key"
+						name="voyage-api-key"
+						label="Voyage API Key"
+						value={voyageApiKey}
+						onChange={(e) => setVoyageApiKey(e.target.value)}
+						helper={
+							!voyageApiKey ? (
+								<HelperText>
+									Don't have an API key?{" "}
+									<SignUpLink
+										href="https://voyageai.com/"
+										label="Sign up for Voyage AI (200M tokens free)"
+									/>
+								</HelperText>
+							) : null
+						}
+					/>
+
+					<TextField
+						id="embed-model"
+						name="embed-model"
+						label="Embedding Model"
+						value={embedModel}
+						onChange={(e) => setEmbedModel(e.target.value)}
+						helper={
+							!embedModel ? (
+								<RecommendedModel
+									model={voyageRecommendedModels.embedding}
+									onSelect={setEmbedModel}
+								/>
+							) : null
+						}
+					/>
+
 					<div className="mb-4 flex gap-2">
 						<button
 							type="submit"

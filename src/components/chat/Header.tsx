@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { HeaderTitle } from "@/components/HeaderTitle";
+import { GitHubIcon } from "@/components/icons/GitHub";
 
 type ChatHeaderProps = {
 	hasMessages: boolean;
@@ -72,6 +73,16 @@ export function ChatHeader({
 				>
 					<Settings className="w-5 h-5" />
 				</Link>
+
+				<a
+					href="https://github.com/yoyosan/rag-for-mdn-reference"
+					target="_blank"
+					rel="noopener noreferrer"
+					className="p-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
+					aria-label="GitHub repository"
+				>
+					<GitHubIcon className="w-5 h-5" />
+				</a>
 			</div>
 		</header>
 	);
